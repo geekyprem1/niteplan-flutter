@@ -56,13 +56,6 @@ class NitePlanHome extends StatefulWidget {
 class _NitePlanHomeState extends State<NitePlanHome> {
   int _tab = 0;
 
-  final _screens = const [
-    SchedulerTab(),
-    ActiveTimerTab(),
-    ReflectionTab(),
-    DisciplineScoreTab(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
@@ -154,7 +147,15 @@ class _NitePlanHomeState extends State<NitePlanHome> {
             ),
         ],
       ),
-      body: IndexedStack(index: _tab, children: _screens),
+      body: IndexedStack(
+        index: _tab,
+        children: [
+          SchedulerTab(onTabSelected: (idx) => setState(() => _tab = idx)),
+          const ActiveTimerTab(),
+          const ReflectionTab(),
+          const DisciplineScoreTab(),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),

@@ -219,6 +219,19 @@ class AppStrings {
     'mins_label': {AppLanguage.english: 'min', AppLanguage.hinglish: 'min'},
     'hrs_label': {AppLanguage.english: 'hrs', AppLanguage.hinglish: 'hrs'},
     'link_google_success': {AppLanguage.english: '✅ Account linked! Data synced.', AppLanguage.hinglish: '✅ Account link ho gaya! Data sync hua.'},
+    'home_progress_title': {AppLanguage.english: "Today's Progress", AppLanguage.hinglish: 'Aaj Ki Progress'},
+    'home_planned': {AppLanguage.english: 'Planned', AppLanguage.hinglish: 'Planned'},
+    'home_completed': {AppLanguage.english: 'Completed', AppLanguage.hinglish: 'Completed'},
+    'home_remaining': {AppLanguage.english: 'Remaining', AppLanguage.hinglish: 'Remaining'},
+    'home_insight_title': {AppLanguage.english: 'DAILY BEHAVIORAL INSIGHT', AppLanguage.hinglish: 'DAILY BEHAVIORAL INSIGHT'},
+    'home_tasks_title': {AppLanguage.english: "TODAY'S TASKS", AppLanguage.hinglish: 'AAJ KE TASKS'},
+    'home_action_new': {AppLanguage.english: 'New Task', AppLanguage.hinglish: 'Naya Task'},
+    'home_action_reflect': {AppLanguage.english: 'Reflection', AppLanguage.hinglish: 'Reflection'},
+    'home_action_weekly': {AppLanguage.english: 'Weekly Review', AppLanguage.hinglish: 'Weekly Review'},
+    'home_reflect_reminder': {AppLanguage.english: 'Take 30 seconds to reflect on your day.', AppLanguage.hinglish: 'Apne din par reflect karne ke liye 30 seconds nikalo.'},
+    'home_reflect_cta': {AppLanguage.english: 'Start Reflection', AppLanguage.hinglish: 'Reflection Shuru Karo'},
+    'home_trend_title': {AppLanguage.english: 'this week', AppLanguage.hinglish: 'is hafte'},
+    'home_trend_no_data': {AppLanguage.english: 'No history yet', AppLanguage.hinglish: 'Abhi koi history nahi'},
   };
 
   static String get(String key, AppLanguage language) {
