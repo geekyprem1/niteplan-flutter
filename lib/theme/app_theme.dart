@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 // ── Brand Colors ──
-const Color kDeepNavy    = Color(0xFF1A1A2E);
-const Color kCardBg      = Color(0xFF1E1E30);
-const Color kAccent      = Color(0xFF7C4DFF);
-const Color kAccentLight = Color(0xFFB39DDB);
-const Color kSuccess     = Color(0xFF00C896);
-const Color kWarning     = Color(0xFFFF9100);
-const Color kDanger      = Color(0xFFFF4060);
-const Color kTextPrimary = Color(0xFFF0F0F5);
-const Color kTextMuted   = Color(0xFF9090AA);
-const Color kDivider     = Color(0xFF2A2A40);
-const Color kSurface     = Color(0xFF12121E);
+const Color kDeepNavy    = Color(0xFF0C0D0E); // Sleek charcoal
+const Color kCardBg      = Color(0xFF17181A); // Linear-style dark card
+const Color kAccent      = Color(0xFF5E6AD2); // Premium Linear Indigo
+const Color kAccentLight = Color(0xFF9EA7FC); // Soft lavender/indigo
+const Color kSuccess     = Color(0xFF10B981); // Calming emerald green
+const Color kWarning     = Color(0xFFF59E0B); // Warm amber
+const Color kDanger      = Color(0xFFEF4444); // Calm rose/red
+const Color kTextPrimary = Color(0xFFF4F4F5); // Soft white
+const Color kTextMuted   = Color(0xFF8E8E93); // Soft gray
+const Color kDivider     = Color(0xFF242427); // Crisp 1px border
+const Color kSurface     = Color(0xFF09090B); // Dark graphite background
 
 ThemeData buildAppTheme() {
   return ThemeData(
@@ -27,19 +27,22 @@ ThemeData buildAppTheme() {
       onError: Colors.white,
       surface: kCardBg,
       onSurface: kTextPrimary,
-      primaryContainer: Color(0xFF2A1A4E),
+      primaryContainer: Color(0xFF1A1B2E),
       onPrimaryContainer: kAccentLight,
-      secondaryContainer: Color(0xFF2A2A40),
+      secondaryContainer: Color(0xFF242427),
       onSecondaryContainer: kTextPrimary,
-      errorContainer: Color(0xFF3A1020),
+      errorContainer: Color(0xFF2A151B),
       onErrorContainer: kDanger,
       outline: kDivider,
-      surfaceContainerHighest: Color(0xFF252535),
+      surfaceContainerHighest: Color(0xFF1E1E21),
     ),
     cardTheme: CardTheme(
       color: kCardBg,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: kDivider, width: 0.8),
+      ),
       margin: EdgeInsets.zero,
     ),
     appBarTheme: const AppBarTheme(
@@ -55,7 +58,7 @@ ThemeData buildAppTheme() {
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: kCardBg,
-      indicatorColor: kAccent.withValues(alpha: 0.2),
+      indicatorColor: kAccent.withValues(alpha: 0.1),
       iconTheme: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return const IconThemeData(color: kAccent);
@@ -85,18 +88,18 @@ ThemeData buildAppTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF252535),
+      fillColor: const Color(0xFF111113),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: kDivider),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: kDivider),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: kAccent, width: 1.5),
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: kAccent, width: 1.2),
       ),
       labelStyle: const TextStyle(color: kTextMuted),
       hintStyle: const TextStyle(color: kTextMuted),
@@ -105,8 +108,9 @@ ThemeData buildAppTheme() {
       style: ElevatedButton.styleFrom(
         backgroundColor: kAccent,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+        elevation: 0,
       ),
     ),
     dividerTheme: const DividerThemeData(color: kDivider, space: 1),

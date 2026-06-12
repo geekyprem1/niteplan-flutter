@@ -30,13 +30,9 @@ class WeeklyReviewScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [kAccent.withValues(alpha: 0.4), const Color(0xFF1A1A3E)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: kAccent.withValues(alpha: 0.4)),
+              color: kCardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: kDivider),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

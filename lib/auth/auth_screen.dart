@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../l10n/language_provider.dart';
 import 'auth_viewmodel.dart';
 
 class AuthScreen extends StatelessWidget {
@@ -9,6 +10,7 @@ class AuthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<AuthViewModel>();
+    final lang = context.watch<LanguageProvider>();
 
     return Scaffold(
       backgroundColor: kSurface,
@@ -22,16 +24,16 @@ class AuthScreen extends StatelessWidget {
               Container(
                 width: 80, height: 80,
                 decoration: BoxDecoration(
-                  color: kAccent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: kAccent.withValues(alpha: 0.4)),
+                  color: kCardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: kDivider),
                 ),
-                child: const Center(child: Text('🌙', style: TextStyle(fontSize: 40))),
+                child: const Center(child: Text('🌙', style: TextStyle(fontSize: 36))),
               ),
               const SizedBox(height: 24),
               const Text('NitePlan', style: TextStyle(color: kTextPrimary, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: 1)),
               const SizedBox(height: 8),
-              const Text('Apne plans ko reality banao', style: TextStyle(color: kTextMuted, fontSize: 15)),
+              Text(lang.tr('app_tagline'), style: const TextStyle(color: kTextMuted, fontSize: 14)),
               const Spacer(),
 
               // Error
@@ -41,7 +43,7 @@ class AuthScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: kDanger.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: kDanger.withValues(alpha: 0.3)),
                   ),
                   child: Row(children: [
@@ -60,19 +62,19 @@ class AuthScreen extends StatelessWidget {
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.black87,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: vm.isLoading ? null : () async {
                     await context.read<AuthViewModel>().signInWithGoogle();
                   },
                   child: vm.isLoading
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: kAccent))
-                      : const Row(
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('G', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF4285F4))),
-                            SizedBox(width: 10),
-                            Text('Google Se Sign In Karo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            const Text('G', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF4285F4))),
+                            const SizedBox(width: 10),
+                            Text(lang.tr('auth_google_btn'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                           ],
                         ),
                 ),
@@ -85,20 +87,20 @@ class AuthScreen extends StatelessWidget {
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: kTextMuted,
-                    side: const BorderSide(color: kDivider),
+                    side: const BorderSide(color: kDivider, width: 0.8),
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: vm.isLoading ? null : () async {
                     await context.read<AuthViewModel>().signInAsGuest();
                   },
-                  child: const Text('Guest Mode Se Continue Karo', style: TextStyle(fontWeight: FontWeight.w600)),
+                  child: Text(lang.tr('auth_guest_btn'), style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Guest mode mein data sirf is device pe rahega.',
-                style: TextStyle(color: kTextMuted, fontSize: 11),
+              Text(
+                lang.tr('auth_guest_warning'),
+                style: const TextStyle(color: kTextMuted, fontSize: 11),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),

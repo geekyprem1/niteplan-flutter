@@ -140,7 +140,7 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: sel ? kAccent : const Color(0xFF252535),
+                      color: sel ? kAccent : const Color(0xFF1E1E21),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     alignment: Alignment.center,

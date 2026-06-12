@@ -174,7 +174,7 @@ class _WelcomePage extends StatelessWidget {
           const SizedBox(height: 32),
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: kDivider)),
+            decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: kDivider)),
             child: const Column(children: [
               _FeatureRow('⏱️', 'Focus Timer', 'Work without distraction'),
               SizedBox(height: 12),
@@ -290,10 +290,10 @@ class _LangOption extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: isSelected ? kAccent.withValues(alpha: 0.12) : kCardBg,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? kAccent : kDivider,
-            width: isSelected ? 2 : 1,
+            width: isSelected ? 1.2 : 0.8,
           ),
         ),
         child: Row(
@@ -310,7 +310,7 @@ class _LangOption extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: isSelected ? kAccent.withValues(alpha: 0.1) : const Color(0xFF252535),
+                      color: isSelected ? kAccent.withValues(alpha: 0.1) : const Color(0xFF1E1E21),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(preview, style: TextStyle(color: isSelected ? kAccent : kTextMuted, fontSize: 11, fontStyle: FontStyle.italic)),
@@ -365,8 +365,8 @@ class _SelectPage extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: sel ? kAccent.withValues(alpha: 0.15) : kCardBg,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: sel ? kAccent : kDivider, width: sel ? 1.5 : 1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: sel ? kAccent : kDivider, width: sel ? 1.2 : 0.8),
                     ),
                     child: Row(children: [
                       Text(emoji, style: const TextStyle(fontSize: 26)),
@@ -435,7 +435,7 @@ class _AuthPage extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: kDanger.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: kDanger.withValues(alpha: 0.3))),
+              decoration: BoxDecoration(color: kDanger.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10), border: Border.all(color: kDanger.withValues(alpha: 0.3))),
               child: Text(authVm.errorMessage!, style: const TextStyle(color: kDanger, fontSize: 13)),
             ),
 
@@ -445,7 +445,7 @@ class _AuthPage extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white, foregroundColor: Colors.black87,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: authVm.isLoading ? null : () async {
                 await onFinish();
@@ -468,9 +468,9 @@ class _AuthPage extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                foregroundColor: kTextMuted, side: const BorderSide(color: kDivider),
+                foregroundColor: kTextMuted, side: const BorderSide(color: kDivider, width: 0.8),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: authVm.isLoading ? null : () async {
                 await onFinish();

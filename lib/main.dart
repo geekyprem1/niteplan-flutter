@@ -149,7 +149,6 @@ class _NitePlanHomeState extends State<NitePlanHome> {
                 decoration: BoxDecoration(
                   color: vm.timerIsRunning ? kSuccess : kWarning,
                   shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: (vm.timerIsRunning ? kSuccess : kWarning).withValues(alpha: 0.5), blurRadius: 6)],
                 ),
               ),
             ),
@@ -192,6 +191,7 @@ class _TaskAlertOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final task = vm.notificationAlertTask!;
+    final lang = context.watch<LanguageProvider>();
     return Material(
       color: Colors.transparent,
       child: Container(
@@ -199,23 +199,35 @@ class _TaskAlertOverlay extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: kCardBg,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: kAccent.withValues(alpha: 0.5)),
-          boxShadow: [BoxShadow(color: kAccent.withValues(alpha: 0.2), blurRadius: 20)],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: kDivider),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            )
+          ],
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('⏰', style: TextStyle(fontSize: 36)),
-          const Text('Kaam Ka Waqt Ho Gaya!', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
-          Text(task.title, style: const TextStyle(color: kAccent, fontWeight: FontWeight.w900, fontSize: 18), textAlign: TextAlign.center),
-          const SizedBox(height: 16),
+          const Text('⏰', style: TextStyle(fontSize: 32)),
+          const SizedBox(height: 6),
+          Text(lang.tr('alert_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 8),
+          Text(task.title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.w900, fontSize: 18), textAlign: TextAlign.center),
+          const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () { vm.dismissAlert(); onTimer(); },
-              child: const Text('Chalo Shuru Karte Hain! 🚀', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(lang.tr('alert_start_btn'), style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
-          TextButton(onPressed: vm.dismissAlert, child: const Text('Baad mein', style: TextStyle(color: kTextMuted))),
+          const SizedBox(height: 4),
+          TextButton(
+            onPressed: vm.dismissAlert,
+            child: Text(lang.tr('alert_later'), style: const TextStyle(color: kTextMuted)),
+          ),
         ]),
       ),
     );
