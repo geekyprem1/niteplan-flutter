@@ -6,7 +6,8 @@ import '../auth/auth_viewmodel.dart';
 import '../l10n/language_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  final VoidCallback? onComplete;
+  const OnboardingScreen({super.key, this.onComplete});
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
@@ -54,11 +55,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setString('main_struggle', _selectedStruggle ?? 'consistency');
     await prefs.setString('primary_goal', _selectedGoal ?? 'career');
     await prefs.setBool('onboarding_done', true);
-
     // Apply selected language
     if (mounted) {
       await context.read<LanguageProvider>().setLanguage(_selectedLanguage);
     }
+  }
+
+  void _onAuthSuccess() {
+    widget.onComplete?.call();
   }
 
   @override
@@ -133,6 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Screen 5: Auth
                   _AuthPage(
                     onFinish: _finishOnboarding,
+                    onAuthSuccess: _onAuthSuccess,
                     language: _selectedLanguage,
                   ),
                 ],
@@ -395,8 +400,9 @@ class _SelectPage extends StatelessWidget {
 // ── Screen 5: Auth ──
 class _AuthPage extends StatelessWidget {
   final Future<void> Function() onFinish;
+  final VoidCallback onAuthSuccess;
   final AppLanguage language;
-  const _AuthPage({required this.onFinish, required this.language});
+  const _AuthPage({required this.onFinish, required this.onAuthSuccess, required this.language});
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +449,10 @@ class _AuthPage extends StatelessWidget {
               ),
               onPressed: authVm.isLoading ? null : () async {
                 await onFinish();
-                if (context.mounted) await context.read<AuthViewModel>().signInWithGoogle();
+                if (context.mounted) {
+                  final ok = await context.read<AuthViewModel>().signInWithGoogle();
+                  if (ok) onAuthSuccess();
+                }
               },
               child: authVm.isLoading
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: kAccent))
@@ -465,7 +474,10 @@ class _AuthPage extends StatelessWidget {
               ),
               onPressed: authVm.isLoading ? null : () async {
                 await onFinish();
-                if (context.mounted) await context.read<AuthViewModel>().signInAsGuest();
+                if (context.mounted) {
+                  final ok = await context.read<AuthViewModel>().signInAsGuest();
+                  if (ok) onAuthSuccess();
+                }
               },
               child: Text(isHi ? 'Guest Mode Se Continue Karo' : 'Continue as Guest', style: const TextStyle(fontWeight: FontWeight.w600)),
             ),

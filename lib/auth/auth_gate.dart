@@ -41,7 +41,9 @@ class _AuthGateState extends State<AuthGate> {
     }
 
     if (!_onboardingDone!) {
-      return const OnboardingScreen();
+      return OnboardingScreen(
+        onComplete: () => setState(() => _onboardingDone = true),
+      );
     }
 
     return StreamBuilder<User?>(
