@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'theme/app_theme.dart';
 import 'viewmodel/task_viewmodel.dart';
+import 'auth/auth_viewmodel.dart';
+import 'auth/auth_gate.dart';
+import 'sync/background_sync.dart';
 import 'screens/scheduler_tab.dart';
 import 'screens/active_timer_tab.dart';
 import 'screens/reflection_tab.dart';
 import 'screens/discipline_score_tab.dart';
-import 'screens/future_self_screen.dart';
+import 'profile/profile_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await BackgroundSync.initialize();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => TaskViewModel(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TaskViewModel()),
+        ChangeNotifierProvider(create: (_) => AuthViewModel()),
+      ],
       child: const NitePlanApp(),
     ),
   );
@@ -26,7 +37,7 @@ class NitePlanApp extends StatelessWidget {
       title: 'NitePlan',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: const NitePlanHome(),
+      home: AuthGate(home: const NitePlanHome()),
     );
   }
 }
@@ -50,6 +61,7 @@ class _NitePlanHomeState extends State<NitePlanHome> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
+    final authVm = context.watch<AuthViewModel>();
 
     return Scaffold(
       backgroundColor: kSurface,
@@ -73,26 +85,43 @@ class _NitePlanHomeState extends State<NitePlanHome> {
         actions: [
           // Reflection reminder badge
           if (!vm.hasReflectedToday && DateTime.now().hour >= 21)
-            Container(
-              margin: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                icon: Stack(
-                  children: [
-                    const Icon(Icons.nights_stay, color: kWarning),
-                    Positioned(
-                      right: 0, top: 0,
-                      child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: kDanger, shape: BoxShape.circle)),
-                    ),
-                  ],
-                ),
-                onPressed: () => setState(() => _tab = 2),
-              ),
+            IconButton(
+              icon: Stack(children: [
+                const Icon(Icons.nights_stay, color: kWarning),
+                Positioned(right: 0, top: 0, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: kDanger, shape: BoxShape.circle))),
+              ]),
+              onPressed: () => setState(() => _tab = 2),
             ),
-          // Future Self Letters
+
+          // Guest upgrade badge
+          if (authVm.isGuest)
+            IconButton(
+              icon: Stack(children: [
+                const Icon(Icons.cloud_off, color: kWarning, size: 22),
+                Positioned(right: 0, top: 0, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: kWarning, shape: BoxShape.circle))),
+              ]),
+              tooltip: 'Guest Mode',
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            ),
+
+          // Profile button
           IconButton(
-            icon: const Icon(Icons.mail_outline, color: kTextMuted),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FutureSelfScreen())),
+            icon: CircleAvatar(
+              radius: 14,
+              backgroundColor: kAccent.withValues(alpha: 0.2),
+              backgroundImage: authVm.currentUser?.photoURL != null
+                  ? NetworkImage(authVm.currentUser!.photoURL!)
+                  : null,
+              child: authVm.currentUser?.photoURL == null
+                  ? Text(
+                      authVm.isGuest ? '👤' : (authVm.currentUser?.displayName?.substring(0, 1).toUpperCase() ?? '?'),
+                      style: const TextStyle(fontSize: 12),
+                    )
+                  : null,
+            ),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
           ),
+
           // Running task dot
           if (vm.runningTask != null)
             Padding(
@@ -117,30 +146,18 @@ class _NitePlanHomeState extends State<NitePlanHome> {
         destinations: [
           const NavigationDestination(icon: Icon(Icons.event_note_outlined), selectedIcon: Icon(Icons.event_note), label: 'Plan'),
           NavigationDestination(
-            icon: Badge(
-              isLabelVisible: vm.runningTask != null,
-              backgroundColor: kSuccess,
-              label: const Text('●', style: TextStyle(fontSize: 6)),
-              child: const Icon(Icons.timer_outlined),
-            ),
+            icon: Badge(isLabelVisible: vm.runningTask != null, backgroundColor: kSuccess, label: const Text('●', style: TextStyle(fontSize: 6)), child: const Icon(Icons.timer_outlined)),
             selectedIcon: const Icon(Icons.timer),
             label: 'Focus',
           ),
           NavigationDestination(
-            icon: Badge(
-              isLabelVisible: !vm.hasReflectedToday && DateTime.now().hour >= 21,
-              backgroundColor: kDanger,
-              label: const Text('!'),
-              child: const Icon(Icons.nights_stay_outlined),
-            ),
+            icon: Badge(isLabelVisible: !vm.hasReflectedToday && DateTime.now().hour >= 21, backgroundColor: kDanger, label: const Text('!'), child: const Icon(Icons.nights_stay_outlined)),
             selectedIcon: const Icon(Icons.nights_stay),
             label: 'Reflect',
           ),
           const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Score'),
         ],
       ),
-
-      // Scheduled Task Alert
       floatingActionButton: vm.notificationAlertTask != null
           ? _TaskAlertOverlay(vm: vm, onTimer: () => setState(() => _tab = 1))
           : null,
@@ -168,27 +185,20 @@ class _TaskAlertOverlay extends StatelessWidget {
           border: Border.all(color: kAccent.withValues(alpha: 0.5)),
           boxShadow: [BoxShadow(color: kAccent.withValues(alpha: 0.2), blurRadius: 20)],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('⏰', style: TextStyle(fontSize: 36)),
-            const SizedBox(height: 4),
-            const Text('Kaam Ka Waqt Ho Gaya!', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 4),
-            Text(task.title, style: const TextStyle(color: kAccent, fontWeight: FontWeight.w900, fontSize: 18), textAlign: TextAlign.center),
-            const SizedBox(height: 4),
-            Text('${task.durationMinutes} min · ${task.hour.toString().padLeft(2,'0')}:${task.minute.toString().padLeft(2,'0')}', style: const TextStyle(color: kTextMuted, fontSize: 13)),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () { vm.dismissAlert(); onTimer(); },
-                child: const Text('Chalo Shuru Karte Hain! 🚀', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('⏰', style: TextStyle(fontSize: 36)),
+          const Text('Kaam Ka Waqt Ho Gaya!', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(task.title, style: const TextStyle(color: kAccent, fontWeight: FontWeight.w900, fontSize: 18), textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () { vm.dismissAlert(); onTimer(); },
+              child: const Text('Chalo Shuru Karte Hain! 🚀', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
-            TextButton(onPressed: vm.dismissAlert, child: const Text('Baad mein', style: TextStyle(color: kTextMuted))),
-          ],
-        ),
+          ),
+          TextButton(onPressed: vm.dismissAlert, child: const Text('Baad mein', style: TextStyle(color: kTextMuted))),
+        ]),
       ),
     );
   }

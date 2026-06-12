@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "331179069314",
+    "project_id": "niteplan",
+    "storage_bucket": "niteplan.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:331179069314:android:ce6d801087ac26ce5d499b",
+        "android_client_info": {
+          "package_name": "com.niteplan.niteplan_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCADO3XxGesNTvU-ul8zf8D5VQre2HpZhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
