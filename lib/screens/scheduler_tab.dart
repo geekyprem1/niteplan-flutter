@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodel/task_viewmodel.dart';
 import '../data/task_model.dart';
 import '../theme/app_theme.dart';
+import '../l10n/language_provider.dart';
 
 class SchedulerTab extends StatefulWidget {
   const SchedulerTab({super.key});
@@ -27,32 +28,28 @@ class _SchedulerTabState extends State<SchedulerTab> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
+    final lang = context.watch<LanguageProvider>();
     final pending = vm.pendingTasks;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
-        // ── Streak + Score banner ──
         _TopBanner(vm: vm),
         const SizedBox(height: 16),
-
-        // ── Add Task Card ──
-        _buildAddTaskCard(vm, context),
+        _buildAddTaskCard(vm, context, lang),
         const SizedBox(height: 24),
-
-        // ── Pending Tasks ──
         buildSectionHeader(
-          'Aaj Ki Planning (${pending.length})',
-          subtitle: "Today's scheduled tasks",
+          '${lang.tr("scheduler_pending_count")} (${pending.length})',
+          subtitle: lang.tr('scheduler_title'),
         ),
         const SizedBox(height: 12),
-        if (pending.isEmpty) _buildEmptyPlanning() 
+        if (pending.isEmpty) _buildEmptyPlanning(lang)
         else ...pending.map((t) => _PendingTaskCard(task: t, vm: vm, key: ValueKey(t.id))),
       ],
     );
   }
 
-  Widget _buildAddTaskCard(TaskViewModel vm, BuildContext context) {
+  Widget _buildAddTaskCard(TaskViewModel vm, BuildContext context, LanguageProvider lang) {
     return Container(
       decoration: BoxDecoration(
         color: kCardBg,
@@ -71,7 +68,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
                 child: const Icon(Icons.add_task, color: kAccent, size: 20),
               ),
               const SizedBox(width: 10),
-              const Text('Naya Kaam Schedule Karo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: kTextPrimary)),
+              Text(lang.tr('scheduler_add_task'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: kTextPrimary)),
             ],
           ),
           const SizedBox(height: 16),
@@ -81,9 +78,9 @@ class _SchedulerTabState extends State<SchedulerTab> {
             controller: _titleCtrl,
             style: const TextStyle(color: kTextPrimary),
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              labelText: 'Kaam ka title *',
-              prefixIcon: Icon(Icons.edit, color: kTextMuted, size: 18),
+            decoration: InputDecoration(
+              labelText: lang.tr('scheduler_task_title'),
+              prefixIcon: const Icon(Icons.edit, color: kTextMuted, size: 18),
             ),
           ),
           const SizedBox(height: 10),
@@ -93,15 +90,15 @@ class _SchedulerTabState extends State<SchedulerTab> {
             controller: _descCtrl,
             style: const TextStyle(color: kTextPrimary),
             maxLines: 2,
-            decoration: const InputDecoration(
-              labelText: 'Details (optional)',
-              prefixIcon: Icon(Icons.notes, color: kTextMuted, size: 18),
+            decoration: InputDecoration(
+              labelText: lang.tr('scheduler_details'),
+              prefixIcon: const Icon(Icons.notes, color: kTextMuted, size: 18),
             ),
           ),
           const SizedBox(height: 16),
 
           // Life Area
-          const Text('Life Area', style: TextStyle(color: kTextMuted, fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(lang.tr('scheduler_life_area'), style: const TextStyle(color: kTextMuted, fontSize: 12, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -136,16 +133,16 @@ class _SchedulerTabState extends State<SchedulerTab> {
           const SizedBox(height: 16),
 
           // Time picker
-          const Text('Kab karna hai?', style: TextStyle(color: kTextMuted, fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(lang.tr('scheduler_when'), style: const TextStyle(color: kTextMuted, fontSize: 12, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _TimeStepper(label: 'Hour', value: _hour, max: 23, step: 1, onChanged: (v) => setState(() => _hour = v))),
+              Expanded(child: _TimeStepper(label: lang.tr('hour'), value: _hour, max: 23, step: 1, onChanged: (v) => setState(() => _hour = v))),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Text(':', style: TextStyle(color: kTextPrimary, fontSize: 28, fontWeight: FontWeight.bold)),
               ),
-              Expanded(child: _TimeStepper(label: 'Minute', value: _minute, max: 55, step: 5, onChanged: (v) => setState(() => _minute = v))),
+              Expanded(child: _TimeStepper(label: lang.tr('minute'), value: _minute, max: 55, step: 5, onChanged: (v) => setState(() => _minute = v))),
             ],
           ),
           const SizedBox(height: 16),
@@ -154,9 +151,9 @@ class _SchedulerTabState extends State<SchedulerTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Kitna time lagega?', style: TextStyle(color: kTextMuted, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(lang.tr('scheduler_duration'), style: const TextStyle(color: kTextMuted, fontSize: 12, fontWeight: FontWeight.w600)),
               Text(
-                _durationHr == 0.5 ? '30 min' : '${_durationHr == _durationHr.floorToDouble() ? _durationHr.toInt() : _durationHr} hrs',
+                _durationHr == 0.5 ? '30 ${lang.tr("mins_label")}' : '${_durationHr == _durationHr.floorToDouble() ? _durationHr.toInt() : _durationHr} ${lang.tr("hrs_label")}',
                 style: const TextStyle(color: kAccent, fontWeight: FontWeight.bold),
               ),
             ],
@@ -206,7 +203,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
                 setState(() { _selectedArea = LifeArea.general; });
               },
               icon: const Icon(Icons.alarm_add),
-              label: const Text('Plan Karo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              label: Text(lang.tr('scheduler_save_btn'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             ),
           ),
         ],
@@ -214,7 +211,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
     );
   }
 
-  Widget _buildEmptyPlanning() {
+  Widget _buildEmptyPlanning(LanguageProvider lang) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -226,9 +223,9 @@ class _SchedulerTabState extends State<SchedulerTab> {
         children: [
           const Text('🌙', style: TextStyle(fontSize: 40)),
           const SizedBox(height: 12),
-          const Text('Aaj koi plan nahi hai', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+          Text(lang.tr('scheduler_empty_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          const Text('Upar form se aaj raat ke liye kaam schedule karo', style: TextStyle(color: kTextMuted, fontSize: 12), textAlign: TextAlign.center),
+          Text(lang.tr('scheduler_empty_sub'), style: const TextStyle(color: kTextMuted, fontSize: 12), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -241,8 +238,9 @@ class _TopBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final score = vm.currentScore?.totalScore.toInt() ?? 0;
-    final label = vm.currentScore?.label ?? 'Beginner';
+    final label = vm.currentScore?.label ?? lang.tr('score_beginner');
     final streak = vm.currentStreak;
 
     return Container(
@@ -262,13 +260,13 @@ class _TopBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('DISCIPLINE SCORE', style: TextStyle(color: kAccentLight, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                Text(lang.tr('score_section_label'), style: const TextStyle(color: kAccentLight, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('$score', style: const TextStyle(color: kTextPrimary, fontSize: 36, fontWeight: FontWeight.w900)),
-                    const Text('/100', style: TextStyle(color: kTextMuted, fontSize: 14)),
+                    Text('/${lang.tr("score_out_of").split(" ").last}', style: const TextStyle(color: kTextMuted, fontSize: 14)),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -282,8 +280,8 @@ class _TopBanner extends StatelessWidget {
           ),
           Column(
             children: [
-              Text('🔥', style: const TextStyle(fontSize: 28)),
-              Text('$streak day streak', style: const TextStyle(color: kTextMuted, fontSize: 11)),
+              const Text('🔥', style: TextStyle(fontSize: 28)),
+              Text('$streak ${lang.tr("banner_streak")}', style: const TextStyle(color: kTextMuted, fontSize: 11)),
             ],
           ),
         ],
