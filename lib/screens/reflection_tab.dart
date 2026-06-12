@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../data/daily_reflection_model.dart';
 import '../viewmodel/task_viewmodel.dart';
 import '../theme/app_theme.dart';
+import '../l10n/language_provider.dart';
 
 class ReflectionTab extends StatefulWidget {
   const ReflectionTab({super.key});
@@ -57,6 +58,7 @@ class _ReflectionTabState extends State<ReflectionTab> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
+    final lang = context.watch<LanguageProvider>();
     final todayStr = _formatDate(DateTime.now());
 
     return ListView(
@@ -69,7 +71,7 @@ class _ReflectionTabState extends State<ReflectionTab> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('DAILY REFLECTION', style: TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                  Text(lang.tr('reflect_section_label'), style: const TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 2),
                   Text(todayStr, style: const TextStyle(color: kTextPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
@@ -79,12 +81,12 @@ class _ReflectionTabState extends State<ReflectionTab> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(color: kSuccess.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20), border: Border.all(color: kSuccess.withValues(alpha: 0.4))),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle, color: kSuccess, size: 14),
-                    SizedBox(width: 4),
-                    Text('Saved', style: TextStyle(color: kSuccess, fontSize: 12, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.check_circle, color: kSuccess, size: 14),
+                    const SizedBox(width: 4),
+                    Text(lang.tr('reflect_saved'), style: const TextStyle(color: kSuccess, fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -93,7 +95,7 @@ class _ReflectionTabState extends State<ReflectionTab> {
         const SizedBox(height: 20),
 
         // Mood
-        _buildMoodPicker(),
+        _buildMoodPicker(lang),
         const SizedBox(height: 20),
 
         // Today's quick stats
@@ -104,8 +106,8 @@ class _ReflectionTabState extends State<ReflectionTab> {
         _buildQuestion(
           number: '01',
           emoji: '✅',
-          question: 'Aaj kya acha gaya?',
-          hint: 'Kaunse kaam poore hue? Kya positive hua?',
+          question: lang.tr('reflect_q1'),
+          hint: lang.tr('reflect_q1_hint'),
           controller: _q1,
           color: kSuccess,
         ),
@@ -114,8 +116,8 @@ class _ReflectionTabState extends State<ReflectionTab> {
         _buildQuestion(
           number: '02',
           emoji: '❌',
-          question: 'Kya nahi ho paya?',
-          hint: 'Kaunse tasks miss hue ya adhure rahe?',
+          question: lang.tr('reflect_q2'),
+          hint: lang.tr('reflect_q2_hint'),
           controller: _q2,
           color: kDanger,
         ),
@@ -124,8 +126,8 @@ class _ReflectionTabState extends State<ReflectionTab> {
         _buildQuestion(
           number: '03',
           emoji: '🔍',
-          question: 'Kyun nahi ho paya?',
-          hint: 'Honest raho — distraction? Thakaan? Planning?',
+          question: lang.tr('reflect_q3'),
+          hint: lang.tr('reflect_q3_hint'),
           controller: _q3,
           color: kWarning,
         ),
@@ -134,8 +136,8 @@ class _ReflectionTabState extends State<ReflectionTab> {
         _buildQuestion(
           number: '04',
           emoji: '🚀',
-          question: 'Kal kya better karunga?',
-          hint: 'Ek specific cheez jo improve karoge',
+          question: lang.tr('reflect_q4'),
+          hint: lang.tr('reflect_q4_hint'),
           controller: _q4,
           color: kAccent,
         ),
@@ -147,14 +149,14 @@ class _ReflectionTabState extends State<ReflectionTab> {
           child: ElevatedButton.icon(
             onPressed: () => _save(vm),
             icon: const Icon(Icons.save_alt),
-            label: Text(_saved ? 'Update Reflection' : 'Reflection Save Karo', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            label: Text(_saved ? lang.tr('reflect_update_btn') : lang.tr('reflect_save_btn'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           ),
         ),
         const SizedBox(height: 32),
 
         // Past Reflections
         if (vm.recentReflections.isNotEmpty) ...[
-          buildSectionHeader('Pichli Reflections', subtitle: 'Last 30 days'),
+          buildSectionHeader(lang.tr('reflect_past_title'), subtitle: lang.tr('reflect_past_sub')),
           const SizedBox(height: 12),
           ...vm.recentReflections.take(5).map((r) => _PastReflectionCard(reflection: r)),
         ],
@@ -162,7 +164,7 @@ class _ReflectionTabState extends State<ReflectionTab> {
     );
   }
 
-  Widget _buildMoodPicker() {
+  Widget _buildMoodPicker(LanguageProvider lang) {
     final moods = ['😞', '😕', '😐', '🙂', '😊'];
     final labels = ['Rough', 'Off', 'Okay', 'Good', 'Great'];
     return Container(
@@ -171,7 +173,7 @@ class _ReflectionTabState extends State<ReflectionTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Aaj ka mood kaisa tha?', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.w600)),
+          Text(lang.tr('reflect_mood'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -300,6 +302,7 @@ class _PastReflectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final moods = ['', '😞', '😕', '😐', '🙂', '😊'];
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -323,6 +326,8 @@ class _PastReflectionCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text('🚀 ${reflection.tomorrowImprovement}', style: const TextStyle(color: kTextMuted, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
           ],
+          const SizedBox(height: 4),
+          Text(lang.tr('reflect_tap_read'), style: const TextStyle(color: kTextMuted, fontSize: 11)),
         ],
       ),
     );

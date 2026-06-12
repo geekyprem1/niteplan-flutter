@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../data/future_self_letter_model.dart';
 import '../viewmodel/task_viewmodel.dart';
 import '../theme/app_theme.dart';
+import '../l10n/language_provider.dart';
+import '../l10n/language_provider.dart';
 
 class FutureSelfScreen extends StatefulWidget {
   const FutureSelfScreen({super.key});
@@ -22,6 +24,7 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
+    final lang = context.watch<LanguageProvider>();
     final letters = vm.letters;
     final unlocked = letters.where((l) => l.isUnlocked).toList();
     final locked = letters.where((l) => !l.isUnlocked).toList();
@@ -29,7 +32,7 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
     return Scaffold(
       backgroundColor: kSurface,
       appBar: AppBar(
-        title: const Text('Future Self Letters'),
+        title: Text(lang.tr('letter_screen_title')),
         backgroundColor: kSurface,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios, size: 18), onPressed: () => Navigator.pop(context)),
         actions: [
@@ -50,12 +53,12 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: kAccent.withValues(alpha: 0.2)),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('✉️ Apne Future Self ko likho', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
-                SizedBox(height: 4),
-                Text('Jo letter aaj likhoge, wo 30, 90 ya 180 din baad automatically unlock hoga. Future self ko message do.', style: TextStyle(color: kTextMuted, fontSize: 13)),
+                Text(lang.tr('letter_intro_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(lang.tr('letter_intro_sub'), style: const TextStyle(color: kTextMuted, fontSize: 13)),
               ],
             ),
           ),
@@ -63,13 +66,13 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
 
           // Write Form
           if (_showForm) ...[
-            _buildWriteForm(vm),
+            _buildWriteForm(vm, lang),
             const SizedBox(height: 20),
           ],
 
           // Unlocked Letters
           if (unlocked.isNotEmpty) ...[
-            const Text('📬 Unlocked Letters', style: TextStyle(color: kSuccess, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(lang.tr('letter_unlocked_section'), style: const TextStyle(color: kSuccess, fontWeight: FontWeight.bold, fontSize: 14)),
             const SizedBox(height: 10),
             ...unlocked.map((l) => _LetterCard(letter: l, vm: vm, isUnlocked: true)),
             const SizedBox(height: 20),
@@ -77,21 +80,21 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
 
           // Locked Letters
           if (locked.isNotEmpty) ...[
-            const Text('🔒 Locked Letters', style: TextStyle(color: kTextMuted, fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(lang.tr('letter_locked_section'), style: const TextStyle(color: kTextMuted, fontWeight: FontWeight.bold, fontSize: 14)),
             const SizedBox(height: 10),
             ...locked.map((l) => _LetterCard(letter: l, vm: vm, isUnlocked: false)),
           ],
 
           if (letters.isEmpty && !_showForm)
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
+                padding: const EdgeInsets.symmetric(vertical: 40),
                 child: Column(
                   children: [
-                    Text('✉️', style: TextStyle(fontSize: 48)),
-                    SizedBox(height: 12),
-                    Text('Koi letter nahi likha abhi tak', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
-                    Text('+ button se apne future self ko message karo', style: TextStyle(color: kTextMuted, fontSize: 13)),
+                    const Text('✉️', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 12),
+                    Text(lang.tr('letter_empty_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+                    Text(lang.tr('letter_empty_sub'), style: const TextStyle(color: kTextMuted, fontSize: 13)),
                   ],
                 ),
               ),
@@ -101,32 +104,32 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
     );
   }
 
-  Widget _buildWriteForm(TaskViewModel vm) {
+  Widget _buildWriteForm(TaskViewModel vm, LanguageProvider lang) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(18), border: Border.all(color: kAccent.withValues(alpha: 0.3))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Naya Letter Likho', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
+          Text(lang.tr('letter_new_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
           const SizedBox(height: 14),
           TextField(
             controller: _titleCtrl,
             style: const TextStyle(color: kTextPrimary),
-            decoration: const InputDecoration(labelText: 'Letter ka title', prefixIcon: Icon(Icons.title, color: kTextMuted, size: 18)),
+            decoration: InputDecoration(labelText: lang.tr('letter_title_field'), prefixIcon: const Icon(Icons.title, color: kTextMuted, size: 18)),
           ),
           const SizedBox(height: 10),
           TextField(
             controller: _contentCtrl,
             maxLines: 6,
             style: const TextStyle(color: kTextPrimary, fontSize: 14),
-            decoration: const InputDecoration(
-              labelText: 'Apne future self ko likho...',
+            decoration: InputDecoration(
+              labelText: lang.tr('letter_content_field'),
               alignLabelWithHint: true,
             ),
           ),
           const SizedBox(height: 14),
-          const Text('Kab unlock ho?', style: TextStyle(color: kTextMuted, fontSize: 12)),
+          Text(lang.tr('letter_unlock_when'), style: const TextStyle(color: kTextMuted, fontSize: 12)),
           const SizedBox(height: 8),
           Row(
             children: [30, 90, 180].map((days) {
@@ -145,7 +148,7 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
                     child: Column(
                       children: [
                         Text('$days', style: TextStyle(color: sel ? Colors.white : kTextMuted, fontWeight: FontWeight.bold, fontSize: 18)),
-                        Text('days', style: TextStyle(color: sel ? Colors.white70 : kTextMuted, fontSize: 10)),
+                        Text(lang.tr('letter_days'), style: TextStyle(color: sel ? Colors.white70 : kTextMuted, fontSize: 10)),
                       ],
                     ),
                   ),
@@ -168,7 +171,7 @@ class _FutureSelfScreenState extends State<FutureSelfScreen> {
                 setState(() => _showForm = false);
               },
               icon: const Icon(Icons.lock_clock),
-              label: Text('Lock Karo — $_unlockDays din ke liye', style: const TextStyle(fontWeight: FontWeight.bold)),
+              label: Text('${lang.tr('letter_lock_btn_days')} $_unlockDays ${lang.tr('letter_days')}', style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -185,6 +188,7 @@ class _LetterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final borderColor = isUnlocked ? kSuccess.withValues(alpha: 0.4) : kDivider;
     final date = DateTime.fromMillisecondsSinceEpoch(letter.writtenAt);
 
@@ -210,7 +214,7 @@ class _LetterCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     isUnlocked
-                        ? 'Tap to read · ${date.day}/${date.month}/${date.year}'
+                        ? '${lang.tr('letter_unlocked_tap')} · ${date.day}/${date.month}/${date.year}'
                         : letter.remainingLabel,
                     style: TextStyle(color: isUnlocked ? kSuccess : kTextMuted, fontSize: 12),
                   ),

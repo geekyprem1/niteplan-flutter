@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/task_viewmodel.dart';
 import '../theme/app_theme.dart';
+import '../l10n/language_provider.dart';
+import '../l10n/language_provider.dart';
 
 class WeeklyReviewScreen extends StatelessWidget {
   const WeeklyReviewScreen({super.key});
@@ -10,12 +12,13 @@ class WeeklyReviewScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.read<TaskViewModel>();
     final report = vm.generateWeeklyReport();
+    final lang = context.watch<LanguageProvider>();
 
     return Scaffold(
       backgroundColor: kSurface,
       appBar: AppBar(
         backgroundColor: kSurface,
-        title: const Text('Weekly CEO Review'),
+        title: Text(lang.tr('weekly_title')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -39,15 +42,15 @@ class WeeklyReviewScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('YOUR WEEKLY REPORT', style: TextStyle(color: kAccentLight, fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
+                Text(lang.tr('weekly_your_report'), style: const TextStyle(color: kAccentLight, fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(report.weekOf, style: const TextStyle(color: kTextPrimary, fontSize: 22, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _bigStat('${report.tasksCompleted}', 'Tasks Done', kSuccess)),
-                    Expanded(child: _bigStat('${report.tasksFailed}', 'Missed', kDanger)),
-                    Expanded(child: _bigStat('${report.successRate}%', 'Success Rate', kAccent)),
+                    Expanded(child: _bigStat('${report.tasksCompleted}', lang.tr('weekly_tasks_done'), kSuccess)),
+                    Expanded(child: _bigStat('${report.tasksFailed}', lang.tr('weekly_missed'), kDanger)),
+                    Expanded(child: _bigStat('${report.successRate}%', lang.tr('weekly_success_rate'), kAccent)),
                   ],
                 ),
               ],
@@ -58,23 +61,23 @@ class WeeklyReviewScreen extends StatelessWidget {
           // Planning Accuracy
           _ReviewCard(
             emoji: '🎯',
-            title: 'Planning Accuracy',
+            title: lang.tr('weekly_planning_acc'),
             value: '${report.planningAccuracy}%',
             valueColor: report.planningAccuracy >= 70 ? kSuccess : report.planningAccuracy >= 40 ? kWarning : kDanger,
             subtitle: report.planningAccuracy >= 70
-                ? 'Excellent! You plan realistically.'
+                ? lang.tr('weekly_plan_excellent')
                 : report.planningAccuracy >= 40
-                    ? 'Room for improvement. Plan fewer, do more.'
-                    : 'Over-planning detected. Start smaller.',
+                    ? lang.tr('weekly_plan_ok')
+                    : lang.tr('weekly_plan_low'),
           ),
           const SizedBox(height: 12),
 
           // Best / Worst day
           Row(
             children: [
-              Expanded(child: _SmallReviewCard(emoji: '🌟', label: 'Best Day', value: report.bestDay, color: kSuccess)),
+              Expanded(child: _SmallReviewCard(emoji: '🌟', label: lang.tr('weekly_best_day'), value: report.bestDay, color: kSuccess)),
               const SizedBox(width: 12),
-              Expanded(child: _SmallReviewCard(emoji: '😤', label: 'Worst Day', value: report.worstDay, color: kDanger)),
+              Expanded(child: _SmallReviewCard(emoji: '😤', label: lang.tr('weekly_worst_day'), value: report.worstDay, color: kDanger)),
             ],
           ),
           const SizedBox(height: 12),
@@ -82,32 +85,32 @@ class WeeklyReviewScreen extends StatelessWidget {
           // Top failure reason
           _ReviewCard(
             emoji: '🧠',
-            title: 'Top Failure Reason',
+            title: lang.tr('weekly_top_failure'),
             value: report.topFailureCategory,
             valueColor: kDanger,
-            subtitle: 'This pattern is hurting your execution most.',
+            subtitle: lang.tr('weekly_failure_msg'),
           ),
           const SizedBox(height: 12),
 
           // Discipline Score
           _ReviewCard(
             emoji: '💪',
-            title: 'Avg Discipline Score',
+            title: lang.tr('weekly_avg_score'),
             value: '${report.avgDisciplineScore.toInt()}/100',
             valueColor: report.avgDisciplineScore >= 60 ? kSuccess : kWarning,
             subtitle: report.avgDisciplineScore >= 60
-                ? 'Strong week! Keep the momentum.'
-                : 'Focus on consistency this coming week.',
+                ? lang.tr('weekly_score_strong')
+                : lang.tr('weekly_score_ok'),
           ),
           const SizedBox(height: 12),
 
           // Biggest Improvement Area
           _ReviewCard(
             emoji: '📈',
-            title: 'Improve This Week',
+            title: lang.tr('weekly_improve_area'),
             value: report.biggestImprovementArea,
             valueColor: kWarning,
-            subtitle: 'This life area needs your attention most.',
+            subtitle: lang.tr('weekly_improve_msg'),
           ),
           const SizedBox(height: 24),
 

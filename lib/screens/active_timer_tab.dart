@@ -2,8 +2,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodel/task_viewmodel.dart';
-import '../data/task_model.dart';
 import '../theme/app_theme.dart';
+import '../l10n/language_provider.dart';
 
 class ActiveTimerTab extends StatelessWidget {
   const ActiveTimerTab({super.key});
@@ -11,6 +11,7 @@ class ActiveTimerTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
+    final lang = context.watch<LanguageProvider>();
 
     return Stack(
       children: [
@@ -19,9 +20,9 @@ class ActiveTimerTab extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('FOCUS TIMER', style: TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+              Text(lang.tr('timer_section_label'), style: const TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              const Text('Abhi Ka Focus', style: TextStyle(color: kTextPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text(lang.tr('timer_title'), style: const TextStyle(color: kTextPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
 
               if (vm.runningTask != null) ...[
@@ -53,6 +54,7 @@ class _RunningTaskCard extends StatelessWidget {
   const _RunningTaskCard({required this.vm});
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final task = vm.runningTask!;
     final areaColor = Color(task.lifeAreaEnum.colorValue);
     return Container(
@@ -70,16 +72,16 @@ class _RunningTaskCard extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('${task.lifeAreaEnum.emoji} ${task.lifeAreaEnum.label}', style: TextStyle(color: areaColor, fontSize: 11, fontWeight: FontWeight.w600)),
               Text(task.title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
-              Text('${task.durationMinutes} min target', style: const TextStyle(color: kTextMuted, fontSize: 12)),
+              Text('${task.durationMinutes} ${lang.tr('timer_target')}', style: const TextStyle(color: kTextMuted, fontSize: 12)),
             ]),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(color: kSuccess.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.circle, size: 8, color: kSuccess),
-              SizedBox(width: 4),
-              Text('LIVE', style: TextStyle(color: kSuccess, fontSize: 11, fontWeight: FontWeight.bold)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.circle, size: 8, color: kSuccess),
+              const SizedBox(width: 4),
+              Text(lang.tr('timer_live'), style: const TextStyle(color: kSuccess, fontSize: 11, fontWeight: FontWeight.bold)),
             ]),
           ),
         ],
@@ -174,13 +176,14 @@ class _QuickCompleteButtons extends StatelessWidget {
   const _QuickCompleteButtons({required this.vm});
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final task = vm.runningTask!;
     return Row(
       children: [
         Expanded(
           child: ElevatedButton.icon(
             icon: const Icon(Icons.check),
-            label: const Text('Ho Gaya!', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: Text(lang.tr('timer_done_btn'), style: const TextStyle(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(backgroundColor: kSuccess, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), padding: const EdgeInsets.symmetric(vertical: 12)),
             onPressed: () => vm.presentFeedbackDialogManually(task, isDone: true),
           ),
@@ -189,7 +192,7 @@ class _QuickCompleteButtons extends StatelessWidget {
         Expanded(
           child: ElevatedButton.icon(
             icon: const Icon(Icons.close),
-            label: const Text('Nahi Ho Paya', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: Text(lang.tr('timer_fail_btn'), style: const TextStyle(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(backgroundColor: kDanger.withValues(alpha: 0.15), foregroundColor: kDanger, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), padding: const EdgeInsets.symmetric(vertical: 12)),
             onPressed: () => vm.presentFeedbackDialogManually(task, isDone: false),
           ),
@@ -202,6 +205,7 @@ class _QuickCompleteButtons extends StatelessWidget {
 class _NoTaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: kDivider)),
@@ -209,9 +213,9 @@ class _NoTaskCard extends StatelessWidget {
         children: [
           const Text('🎯', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 12),
-          const Text('Koi task running nahi', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(lang.tr('timer_no_task'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 4),
-          const Text('Planning tab se kaam start karo ya niche se koi task shuru karo', style: TextStyle(color: kTextMuted, fontSize: 13), textAlign: TextAlign.center),
+          Text(lang.tr('timer_no_task_sub'), style: const TextStyle(color: kTextMuted, fontSize: 13), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -223,10 +227,11 @@ class _PendingTasksRow extends StatelessWidget {
   const _PendingTasksRow({required this.vm});
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Pending Tasks — Shuru Karo', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+        Text(lang.tr('timer_pending_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         SizedBox(
           height: 130,
@@ -253,7 +258,7 @@ class _PendingTasksRow extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Tap to start', style: TextStyle(color: kAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                          Text(lang.tr('timer_tap_start'), style: const TextStyle(color: kAccent, fontSize: 11, fontWeight: FontWeight.bold)),
                           const Icon(Icons.play_arrow, color: kAccent, size: 16),
                         ],
                       ),
@@ -275,6 +280,7 @@ class _FinishedTasksHistory extends StatelessWidget {
   const _FinishedTasksHistory({required this.vm});
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final finished = vm.allTasks.where((t) => t.status == 'DONE' || t.status == 'NOT_DONE').toList();
     if (finished.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -283,7 +289,7 @@ class _FinishedTasksHistory extends StatelessWidget {
         const SizedBox(height: 8),
         const Divider(color: kDivider),
         const SizedBox(height: 8),
-        const Text("Aaj Ka Result", style: TextStyle(color: kTextMuted, fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(lang.tr('timer_today_result'), style: const TextStyle(color: kTextMuted, fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(height: 10),
         ...finished.map((t) {
           final isOk = t.status == 'DONE';
@@ -337,6 +343,7 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final vm = widget.vm;
     final task = vm.feedbackDialogTask!;
     final suggestions = _isDone ? vm.successReasonsSuggestion : vm.failureReasonsSuggestion;
@@ -352,7 +359,7 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('TASK REPORT', style: TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                Text(lang.tr('feedback_title'), style: const TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(task.title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
                 const SizedBox(height: 16),
@@ -370,7 +377,7 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
                             border: Border.all(color: _isDone ? kSuccess : kDivider),
                           ),
                           alignment: Alignment.center,
-                          child: Text('✅ Ho Gaya', style: TextStyle(color: _isDone ? kSuccess : kTextMuted, fontWeight: FontWeight.bold)),
+                          child: Text('✅ ${lang.tr('feedback_done')}', style: TextStyle(color: _isDone ? kSuccess : kTextMuted, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
@@ -387,14 +394,14 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
                             border: Border.all(color: !_isDone ? kDanger : kDivider),
                           ),
                           alignment: Alignment.center,
-                          child: Text('❌ Nahi Hua', style: TextStyle(color: !_isDone ? kDanger : kTextMuted, fontWeight: FontWeight.bold)),
+                          child: Text('❌ ${lang.tr('feedback_not_done')}', style: TextStyle(color: !_isDone ? kDanger : kTextMuted, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 14),
-                Text(_isDone ? 'Kaise ho gaya?' : 'Kyun nahi ho paya?', style: const TextStyle(color: kTextMuted, fontSize: 12)),
+                Text(_isDone ? lang.tr('feedback_how') : lang.tr('feedback_why'), style: const TextStyle(color: kTextMuted, fontSize: 12)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6, runSpacing: 6,
@@ -420,14 +427,14 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
                   controller: _reasonCtrl,
                   style: const TextStyle(color: kTextPrimary, fontSize: 13),
                   onChanged: (v) => setState(() => _reason = v),
-                  decoration: const InputDecoration(labelText: 'Ya khud likho...'),
+                  decoration: InputDecoration(labelText: lang.tr('feedback_write')),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     TextButton(
                       onPressed: vm.cancelFeedbackDialog,
-                      child: const Text('Baad mein', style: TextStyle(color: kTextMuted)),
+                      child: Text(lang.tr('alert_later'), style: const TextStyle(color: kTextMuted)),
                     ),
                     const Spacer(),
                     ElevatedButton(
@@ -435,7 +442,7 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
                         final finalReason = _reason.isEmpty ? (_isDone ? 'Completed' : 'Could not finish') : _reason;
                         await vm.submitTaskFeedback(task, _isDone, finalReason);
                       },
-                      child: const Text('Save Karo', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text(lang.tr('feedback_save'), style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

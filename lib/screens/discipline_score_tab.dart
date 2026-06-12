@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../viewmodel/task_viewmodel.dart';
 import '../data/discipline_score_model.dart';
 import '../theme/app_theme.dart';
+import '../l10n/language_provider.dart';
 import 'weekly_review_screen.dart';
 
 class DisciplineScoreTab extends StatelessWidget {
@@ -11,6 +12,7 @@ class DisciplineScoreTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final vm = context.watch<TaskViewModel>();
     final score = vm.currentScore;
 
@@ -18,9 +20,9 @@ class DisciplineScoreTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
         // Header
-        const Text('DISCIPLINE SCORE', style: TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+        Text(lang.tr('score_section_label'), style: const TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        const Text('Aapki consistency ka mirror', style: TextStyle(color: kTextPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(lang.tr('score_subtitle'), style: const TextStyle(color: kTextPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 24),
 
         // Big Score Ring
@@ -53,20 +55,20 @@ class DisciplineScoreTab extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: kAccent.withValues(alpha: 0.4)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Text('📊', style: TextStyle(fontSize: 32)),
-                SizedBox(width: 16),
+                const Text('📊', style: TextStyle(fontSize: 32)),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Weekly CEO Review', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text('Apna weekly performance report dekho', style: TextStyle(color: kTextMuted, fontSize: 12)),
+                      Text(lang.tr('score_weekly_btn'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(lang.tr('score_weekly_sub'), style: const TextStyle(color: kTextMuted, fontSize: 12)),
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, color: kAccent, size: 16),
+                const Icon(Icons.arrow_forward_ios, color: kAccent, size: 16),
               ],
             ),
           ),
@@ -83,9 +85,28 @@ class _ScoreRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final total = score?.totalScore ?? 0;
-    final label = score?.label ?? 'Beginner';
+    final rawLabel = score?.label ?? 'Beginner';
     final scoreColor = Color(score?.colorValue ?? 0xFFFF4060);
+
+    String localizedLabel;
+    switch (rawLabel) {
+      case 'Building':
+        localizedLabel = lang.tr('score_building');
+        break;
+      case 'Consistent':
+        localizedLabel = lang.tr('score_consistent');
+        break;
+      case 'Disciplined':
+        localizedLabel = lang.tr('score_disciplined');
+        break;
+      case 'Elite':
+        localizedLabel = lang.tr('score_elite');
+        break;
+      default:
+        localizedLabel = lang.tr('score_beginner');
+    }
 
     return Center(
       child: Column(
@@ -100,7 +121,7 @@ class _ScoreRing extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('${total.toInt()}', style: const TextStyle(color: kTextPrimary, fontSize: 52, fontWeight: FontWeight.w900)),
-                    Text('out of 100', style: const TextStyle(color: kTextMuted, fontSize: 12)),
+                    Text(lang.tr('score_out_of'), style: const TextStyle(color: kTextMuted, fontSize: 12)),
                   ],
                 ),
               ),
@@ -114,7 +135,7 @@ class _ScoreRing extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: scoreColor.withValues(alpha: 0.4)),
             ),
-            child: Text(label, style: TextStyle(color: scoreColor, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
+            child: Text(localizedLabel, style: TextStyle(color: scoreColor, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
           ),
         ],
       ),
@@ -158,18 +179,19 @@ class _ScoreBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(18), border: Border.all(color: kDivider)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Score Breakdown', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+          Text(lang.tr('score_breakdown'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
           const SizedBox(height: 14),
-          _bar('⚡ Execution Rate', score.executionScore, kSuccess, '40%'),
-          _bar('📅 Consistency', score.consistencyScore, kAccent, '30%'),
-          _bar('🎯 Planning Accuracy', score.planningScore, kWarning, '20%'),
-          _bar('🔍 Reflection', score.reflectionScore, Color(0xFF00BCD4), '10%'),
+          _bar(lang.tr('score_execution'), score.executionScore, kSuccess, '40%'),
+          _bar(lang.tr('score_consistency'), score.consistencyScore, kAccent, '30%'),
+          _bar(lang.tr('score_planning'), score.planningScore, kWarning, '20%'),
+          _bar(lang.tr('score_reflection'), score.reflectionScore, const Color(0xFF00BCD4), '10%'),
         ],
       ),
     );
@@ -217,6 +239,7 @@ class _ScoreSparkline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final last7 = history.length > 7 ? history.sublist(history.length - 7) : history;
     final maxScore = last7.map((s) => s.totalScore).fold(1.0, (a, b) => a > b ? a : b);
 
@@ -226,7 +249,7 @@ class _ScoreSparkline extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Score History (7 days)', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+          Text(lang.tr('score_history'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           SizedBox(
             height: 80,
@@ -272,6 +295,7 @@ class _FailureIntelligenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     final insights = vm.failureInsights;
 
     return Container(
@@ -280,18 +304,18 @@ class _FailureIntelligenceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Text('🧠', style: TextStyle(fontSize: 18)),
-              SizedBox(width: 8),
-              Text('Failure Intelligence', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
+              const Text('🧠', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Text(lang.tr('score_failure_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
             ],
           ),
           const SizedBox(height: 4),
-          const Text('Kyun fail hote ho?', style: TextStyle(color: kTextMuted, fontSize: 12)),
+          Text(lang.tr('score_failure_sub'), style: const TextStyle(color: kTextMuted, fontSize: 12)),
           const SizedBox(height: 14),
           if (insights.isEmpty)
-            const Text('Abhi tak koi failure data nahi hai. Tasks complete karo aur reason dalo!', style: TextStyle(color: kTextMuted, fontSize: 13))
+            Text(lang.tr('score_no_failure'), style: const TextStyle(color: kTextMuted, fontSize: 13))
           else ...[
             // Top insight banner
             Container(
@@ -351,13 +375,14 @@ class _LifeAreaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(18), border: Border.all(color: kDivider)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Life Area Performance', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+          Text(lang.tr('score_life_area'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
           const SizedBox(height: 14),
           ...vm.lifeAreaStats.map((stat) {
             final color = Color(stat.area.colorValue);
