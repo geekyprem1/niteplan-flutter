@@ -84,6 +84,10 @@ class AppStrings {
     'score_life_area': {AppLanguage.english: 'Life Area Performance', AppLanguage.hinglish: 'Life Area Performance'},
     'score_weekly_btn': {AppLanguage.english: 'Weekly CEO Review', AppLanguage.hinglish: 'Weekly CEO Review'},
     'score_weekly_sub': {AppLanguage.english: 'View your weekly performance report', AppLanguage.hinglish: 'Apna weekly performance report dekho'},
+    'score_execution': {AppLanguage.english: '⚡ Execution Rate', AppLanguage.hinglish: '⚡ Execution Rate'},
+    'score_consistency': {AppLanguage.english: '📅 Consistency', AppLanguage.hinglish: '📅 Consistency'},
+    'score_planning': {AppLanguage.english: '🎯 Planning Accuracy', AppLanguage.hinglish: '🎯 Planning Accuracy'},
+    'score_reflection': {AppLanguage.english: '🔍 Reflection', AppLanguage.hinglish: '🔍 Reflection'},
 
     // ── WEEKLY REVIEW ──
     'weekly_title': {AppLanguage.english: 'Weekly CEO Review', AppLanguage.hinglish: 'Weekly CEO Review'},
