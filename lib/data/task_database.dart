@@ -22,7 +22,7 @@ class NitePlanDatabase {
     final path = join(dbPath, filePath);
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -86,6 +86,34 @@ class NitePlanDatabase {
         isUnlocked INTEGER DEFAULT 0
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE personal_records (
+        key TEXT PRIMARY KEY,
+        value REAL NOT NULL,
+        timestamp INTEGER NOT NULL,
+        detail TEXT DEFAULT ''
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE unlocked_milestones (
+        id TEXT PRIMARY KEY,
+        unlockedAt INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE growth_timeline_points (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        dateStr TEXT NOT NULL UNIQUE,
+        disciplineScore REAL NOT NULL,
+        reliabilityScore REAL NOT NULL,
+        levelNumber INTEGER NOT NULL,
+        promisesKept INTEGER NOT NULL,
+        timestamp INTEGER NOT NULL
+      )
+    ''');
   }
 
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
@@ -137,6 +165,36 @@ class NitePlanDatabase {
         )
       ''');
     }
+
+    if (oldVersion < 3) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS personal_records (
+          key TEXT PRIMARY KEY,
+          value REAL NOT NULL,
+          timestamp INTEGER NOT NULL,
+          detail TEXT DEFAULT ''
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS unlocked_milestones (
+          id TEXT PRIMARY KEY,
+          unlockedAt INTEGER NOT NULL
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS growth_timeline_points (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          dateStr TEXT NOT NULL UNIQUE,
+          disciplineScore REAL NOT NULL,
+          reliabilityScore REAL NOT NULL,
+          levelNumber INTEGER NOT NULL,
+          promisesKept INTEGER NOT NULL,
+          timestamp INTEGER NOT NULL
+        )
+      ''');
+    }
   }
 
   // ==================== TASKS ====================
@@ -164,7 +222,7 @@ class NitePlanDatabase {
 
   Future<List<Task>> getTasksByDate(String date) async {
     final db = await database;
-    final result = await db.query('tasks', where: 'plannedDate = ?', whereArgs: [date]);
+    final result = await db.query('tasks', where: 'plannedDate = ?', whereArgs: [date], orderBy: 'hour ASC, minute ASC');
     return result.map((m) => Task.fromMap(m)).toList();
   }
 
@@ -179,22 +237,12 @@ class NitePlanDatabase {
     return result.map((m) => Task.fromMap(m)).toList();
   }
 
-  // ==================== REFLECTIONS ====================
+  // ==================== DAILY REFLECTIONS ====================
 
-  Future<int> upsertReflection(DailyReflection reflection) async {
+  Future<int> upsertReflection(DailyReflection ref) async {
     final db = await database;
-    final existing = await db.query('daily_reflections',
-        where: 'date = ?', whereArgs: [reflection.date]);
-    if (existing.isEmpty) {
-      return await db.insert('daily_reflections', reflection.toMap());
-    } else {
-      return await db.update(
-        'daily_reflections',
-        reflection.copyWith(updatedAt: DateTime.now().millisecondsSinceEpoch).toMap(),
-        where: 'date = ?',
-        whereArgs: [reflection.date],
-      );
-    }
+    return await db.insert('daily_reflections', ref.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<DailyReflection?> getReflectionByDate(String date) async {
@@ -215,6 +263,12 @@ class NitePlanDatabase {
       orderBy: 'date DESC',
     );
     return result.map((m) => DailyReflection.fromMap(m)).toList();
+  }
+
+  Future<int> getReflectionsCount() async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM daily_reflections');
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 
   // ==================== DISCIPLINE SCORES ====================
@@ -268,5 +322,69 @@ class NitePlanDatabase {
     final result =
         await db.query('future_self_letters', orderBy: 'writtenAt DESC');
     return result.map((m) => FutureSelfLetter.fromMap(m)).toList();
+  }
+
+  // ==================== PERSONAL RECORDS ====================
+
+  Future<List<Map<String, dynamic>>> getPersonalRecords() async {
+    final db = await database;
+    return await db.query('personal_records');
+  }
+
+  Future<void> savePersonalRecord(String key, double value, String detail) async {
+    final db = await database;
+    await db.insert(
+      'personal_records',
+      {
+        'key': key,
+        'value': value,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'detail': detail,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  // ==================== UNLOCKED MILESTONES ====================
+
+  Future<List<String>> getUnlockedMilestones() async {
+    final db = await database;
+    final result = await db.query('unlocked_milestones');
+    return result.map((m) => m['id'] as String).toList();
+  }
+
+  Future<void> unlockMilestone(String id) async {
+    final db = await database;
+    await db.insert(
+      'unlocked_milestones',
+      {
+        'id': id,
+        'unlockedAt': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  // ==================== GROWTH TIMELINE POINTS ====================
+
+  Future<List<Map<String, dynamic>>> getGrowthTimelinePoints() async {
+    final db = await database;
+    return await db.query('growth_timeline_points', orderBy: 'timestamp ASC');
+  }
+
+  Future<void> saveGrowthTimelinePoint(String dateStr, double disciplineScore, double reliabilityScore, int levelNumber, int promisesKept) async {
+    final db = await database;
+    await db.insert(
+      'growth_timeline_points',
+      {
+        'dateStr': dateStr,
+        'disciplineScore': disciplineScore,
+        'reliabilityScore': reliabilityScore,
+        'levelNumber': levelNumber,
+        'promisesKept': promisesKept,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 }

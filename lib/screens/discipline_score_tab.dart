@@ -6,6 +6,9 @@ import '../data/discipline_score_model.dart';
 import '../theme/app_theme.dart';
 import '../l10n/language_provider.dart';
 import 'weekly_review_screen.dart';
+import 'personal_records_screen.dart';
+import 'growth_timeline_screen.dart';
+
 
 class DisciplineScoreTab extends StatelessWidget {
   const DisciplineScoreTab({super.key});
@@ -45,8 +48,71 @@ class DisciplineScoreTab extends StatelessWidget {
         if (vm.lifeAreaStats.isNotEmpty) _LifeAreaCard(vm: vm),
         const SizedBox(height: 16),
 
+        // Personal Records Card
+        GestureDetector(
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PersonalRecordsScreen())),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: kCardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: kDivider),
+            ),
+            child: const Row(
+              children: [
+                Text('🏆', style: TextStyle(fontSize: 24)),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Personal Records & Milestones', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+                      SizedBox(height: 2),
+                      Text('Check all-time bests and unlocked achievements', style: TextStyle(color: kTextMuted, fontSize: 11.5)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: kTextMuted, size: 14),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Growth Timeline Card
+        GestureDetector(
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GrowthTimelineScreen())),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: kCardBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: kDivider),
+            ),
+            child: const Row(
+              children: [
+                Text('📈', style: TextStyle(fontSize: 24)),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Growth Timeline', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+                      SizedBox(height: 2),
+                      Text('Observe your discipline growth and breakthroughs over time', style: TextStyle(color: kTextMuted, fontSize: 11.5)),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_forward_ios, color: kTextMuted, size: 14),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
         // Weekly CEO Review button
         GestureDetector(
+
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WeeklyReviewScreen())),
           child: Container(
             padding: const EdgeInsets.all(20),

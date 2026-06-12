@@ -311,9 +311,172 @@ class AppStrings {
   };
 
   static String get(String key, AppLanguage language) {
+    if (key.startsWith('level_')) {
+      final parts = key.split('_');
+      if (parts.length >= 3) {
+        final lvl = int.tryParse(parts[1]) ?? 1;
+        final type = parts[2]; // name, desc, req
+        return _getIdentityLevelString(lvl, type, language);
+      }
+    }
+
+    if (key.startsWith('ms_')) {
+      final parts = key.split('_');
+      if (parts.length >= 3) {
+        final cat = parts[1]; // kept, made, ref, streak, etc.
+        final sub = parts[2];
+        final type = parts.last; // title or desc
+        return _getMilestoneString(cat, sub, type, language);
+      }
+    }
+
     final entry = _strings[key];
     if (entry == null) return key; // fallback to key itself
     return entry[language] ?? entry[AppLanguage.english] ?? key;
+  }
+
+  static String _getIdentityLevelString(int lvl, String type, AppLanguage lang) {
+    final names = {
+      1: (en: "The Observer", hi: "The Observer"),
+      2: (en: "Curious Wanderer", hi: "Curious Wanderer"),
+      3: (en: "Intent Starter", hi: "Intent Starter"),
+      4: (en: "Mirror Seeker", hi: "Mirror Seeker"),
+      5: (en: "Pattern Spotter", hi: "Pattern Spotter"),
+      6: (en: "Promise Keeper", hi: "Promise Keeper"),
+      7: (en: "Quiet Architect", hi: "Quiet Architect"),
+      8: (en: "Habit Builder", hi: "Habit Builder"),
+      9: (en: "Honest Evaluator", hi: "Honest Evaluator"),
+      10: (en: "Focused Mind", hi: "Focused Mind"),
+      11: (en: "Consistent Executor", hi: "Consistent Executor"),
+      12: (en: "Pattern Master", hi: "Pattern Master"),
+      13: (en: "Self-Adjuster", hi: "Self-Adjuster"),
+      14: (en: "Resilient Planner", hi: "Resilient Planner"),
+      15: (en: "Discipline Practitioner", hi: "Discipline Practitioner"),
+      16: (en: "Mindful Doer", hi: "Mindful Doer"),
+      17: (en: "Reliable Shield", hi: "Reliable Shield"),
+      18: (en: "Unyielding Will", hi: "Unyielding Will"),
+      19: (en: "Behavioral Master", hi: "Behavioral Master"),
+      20: (en: "Unstoppable Force", hi: "Unstoppable Force"),
+    };
+
+    final descs = {
+      1: (en: "You are beginning to observe your execution patterns without judgment.", hi: "Aap bina kisi self-judgment ke apne execution patterns ko observe kar rahe hain."),
+      2: (en: "You are actively asking 'why' and logging daily reflections.", hi: "Aap actively 'kyun' ka jawab dhoond rahe hain aur reflections log kar rahe hain."),
+      3: (en: "You are taking the first steps to commit to small, realistic plans.", hi: "Aap realistic plans aur promises set karne ke early steps le rahe hain."),
+      4: (en: "You seek the honest mirror of behavioral analytics.", hi: "Aap self-discovery report aur data ke mirror ko dekh rahe hain."),
+      5: (en: "You are beginning to spot the triggers that cause your goals to fail.", hi: "Aap un triggers ko dhoond rahe hain jo aapke plans ko todate hain."),
+      6: (en: "You are starting to build solid, reliable self-trust.", hi: "Aap solid, reliable self-trust build karna shuru kar rahe hain."),
+      7: (en: "You design your daily environment to support consistent actions.", hi: "Aap apna daily environment adjust kar rahe hain taaki execution clear ho."),
+      8: (en: "Your plans are converting to actions with steady rhythm.", hi: "Aapke plans dheere-dheere actions me convert ho rahe hain."),
+      9: (en: "You evaluate failures with absolute and raw honesty.", hi: "Aap apni asafaltaon ko bina kisi bahaane ke evaluate karte hain."),
+      10: (en: "You focus on high-quality commitments rather than task volume.", hi: "Aap number of tasks ke bajaye unki quality pe focus karte hain."),
+      11: (en: "Consistency is becoming your natural state.", hi: "Consistency aapki natural lifestyle banti ja rahi hai."),
+      12: (en: "You possess deep awareness of your execution triggers.", hi: "Aapko apne execution triggers aur failure behavior ki gehri samajh hai."),
+      13: (en: "You seamlessly adjust environment to bypass procrastination.", hi: "Aap bina motivation ke environment adjust karke kaam shuru karte hain."),
+      14: (en: "You bounce back immediately after execution setbacks.", hi: "Aap fail hone ke baad turant recover karke naya waada poora karte hain."),
+      15: (en: "Discipline is no longer forced; it is practiced daily.", hi: "Discipline ab zabardasti nahi hai; ye daily practice ban chuka hai."),
+      16: (en: "Your actions are aligned with mindful planning accuracy.", hi: "Aapke plans aur actual actions bilkul match karte hain."),
+      17: (en: "You are highly reliable to yourself and your promises.", hi: "Aap khud ke liye aur apne promises ke liye bohot reliable hain."),
+      18: (en: "Your will is steady even in low-energy and low-motivation states.", hi: "Maan na hone par bhi aap apne plans poore karte hain."),
+      19: (en: "You have mastered the connection between intent and action.", hi: "Aapne intent aur action ke beech ke connection ko master kiya hai."),
+      20: (en: "You have achieved complete self-trust and behavioral mastery.", hi: "Aapne complete self-trust aur behavioral mastery haasil kar li hai."),
+    };
+
+    final reqs = {
+      1: (en: "Default starting level", hi: "Pehla starting level"),
+      2: (en: "3 Reflections logged", hi: "3 Reflections log karein"),
+      3: (en: "5 Promises Kept", hi: "5 Waade poore karein"),
+      4: (en: "5 Reflections logged + 40% Reliability", hi: "5 Reflections + 40% Reliability"),
+      5: (en: "10 Promises Kept + 7 Reflections logged", hi: "10 Waade + 7 Reflections"),
+      6: (en: "15 Promises Kept + 45% Reliability", hi: "15 Waade + 45% Reliability"),
+      7: (en: "25 Promises Kept", hi: "25 Waade poore karein"),
+      8: (en: "35 Promises Kept + 50% Reliability", hi: "35 Waade + 50% Reliability"),
+      9: (en: "15 Reflections logged", hi: "15 Reflections log karein"),
+      10: (en: "45 Promises Kept + 55% Reliability", hi: "45 Waade + 55% Reliability"),
+      11: (en: "60 Promises Kept + 20 Reflections logged", hi: "60 Waade + 20 Reflections"),
+      12: (en: "30 Reflections logged", hi: "30 Reflections log karein"),
+      13: (en: "80 Promises Kept + 60% Reliability", hi: "80 Waade + 60% Reliability"),
+      14: (en: "100 Promises Kept + Best Discipline Score >= 65", hi: "100 Waade + Best Score >= 65"),
+      15: (en: "125 Promises Kept + 40 Reflections logged", hi: "125 Waade + 40 Reflections"),
+      16: (en: "150 Promises Kept + 70% Reliability", hi: "150 Waade + 70% Reliability"),
+      17: (en: "175 Promises Kept + 75% Reliability", hi: "175 Waade + 75% Reliability"),
+      18: (en: "200 Promises Kept + Best Discipline Score >= 75", hi: "200 Waade + Best Score >= 75"),
+      19: (en: "225 Promises Kept + 60 Reflections logged", hi: "225 Waade + 60 Reflections"),
+      20: (en: "250 Promises Kept + 80% Reliability + Best Discipline Score >= 80", hi: "250 Waade + 80% Reliability + Best Score >= 80"),
+    };
+
+    final isHi = lang == AppLanguage.hinglish;
+    if (type == 'name') {
+      return isHi ? names[lvl]!.hi : names[lvl]!.en;
+    } else if (type == 'desc') {
+      return isHi ? descs[lvl]!.hi : descs[lvl]!.en;
+    } else {
+      return isHi ? reqs[lvl]!.hi : reqs[lvl]!.en;
+    }
+  }
+
+  static String _getMilestoneString(String cat, String sub, String type, AppLanguage lang) {
+    final isTitle = type == 'title';
+    final isHi = lang == AppLanguage.hinglish;
+
+    switch (cat) {
+      case 'kept':
+        return isTitle
+            ? (isHi ? "$sub Waade Poore Kiye" : "$sub Promises Kept")
+            : (isHi ? "Aapne khud se kiye $sub waade poore kiye." : "You successfully kept $sub promises to yourself.");
+      case 'made':
+        return isTitle
+            ? (isHi ? "$sub Waade Commit Kiye" : "$sub Promises Made")
+            : (isHi ? "Aapne Whyly me $sub moves schedule kiye." : "You planned $sub moves in Whyly.");
+      case 'ref':
+        return isTitle
+            ? (isHi ? "$sub Reflections Logged" : "$sub Reflections Logged")
+            : (isHi ? "Aapne $sub self-discovery logs complete kiye." : "You logged $sub self-discovery logs.");
+      case 'streak':
+        return isTitle
+            ? (isHi ? "$sub-Din Ki Consistency" : "$sub-Day Consistency")
+            : (isHi ? "Aapne lagatar $sub din tak waade poore kiye." : "You maintained a kept streak of $sub days.");
+      case 'score':
+        return isTitle
+            ? (isHi ? "Discipline Score $sub cross kiya" : "Discipline Score reached $sub")
+            : (isHi ? "Aapka daily improvement score $sub cross kar gaya." : "Your overall self-improvement index crossed $sub.");
+      case 'rel':
+        return isTitle
+            ? (isHi ? "Reliability Score $sub% Hua" : "Reliability Reached $sub%")
+            : (isHi ? "Aapka promise completion rate $sub% ho gaya." : "Your promise completion rate reached $sub%.");
+      case 'plan':
+        return isTitle
+            ? (isHi ? "Planning Accuracy $sub% Hua" : "Planning Accuracy reached $sub%")
+            : (isHi ? "Aapki planning realism accuracy $sub% ho gayi." : "Your planning realism index reached $sub%.");
+      case 'area':
+        final areaName = sub == 'rel' ? 'Relationships' : sub.substring(0, 1).toUpperCase() + sub.substring(1);
+        final areaHi = sub == 'rel' ? 'Relationships' : (sub == 'gen' ? 'General' : areaName);
+        return isTitle
+            ? (isHi ? "$areaHi Me Discipline" : "Discipline in $areaName")
+            : (isHi ? "Aapne $areaHi life area me 10 plans execute kiye." : "You kept 10 promises in the $areaName life area.");
+      case 'time':
+        final tLabel = sub == 'morn' ? 'Morning' : (sub == 'aft' ? 'Afternoon' : (sub == 'eve' ? 'Evening' : 'Night'));
+        final tHi = sub == 'morn' ? 'Subah' : (sub == 'aft' ? 'Dopehar' : (sub == 'eve' ? 'Shaam' : 'Raat'));
+        return isTitle
+            ? (isHi ? "$tHi me Execution" : "$tLabel Execution")
+            : (isHi ? "Aapne $tHi ke waqt plans poore kiye." : "You completed promises during $tLabel hours.");
+      case 'week':
+        return isTitle
+            ? (isHi ? "$sub Weekly Reports unlocked" : "$sub Weekly Reports")
+            : (isHi ? "Aapne $sub weekly behavioral review reports complete kiye." : "You unlocked $sub Weekly Self-Discovery reports.");
+      case 'let':
+        final action = sub == 'write' ? 'Written' : 'Unlocked';
+        final actionHi = sub == 'write' ? 'Likha' : 'Unlock Kiya';
+        return isTitle
+            ? (isHi ? "Future Self Letter $actionHi" : "Future Self Letter $action")
+            : (isHi ? "Aapne apne future self ke liye letter $actionHi." : "You $action a letter to your future self.");
+      case 'fail':
+        return isTitle
+            ? (isHi ? "Failure Intelligence Level" : "Failure Decoding")
+            : (isHi ? "Aapne failure triggers ko diagnose kiya." : "You diagnosed execution failure patterns.");
+      default:
+        return isTitle ? "Milestone Unlocked" : "You reached a new consistency milestone.";
+    }
   }
 
   static List<String> get allKeys => _strings.keys.toList();

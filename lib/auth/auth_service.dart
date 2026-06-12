@@ -105,7 +105,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       await docRef.set({
         'uid': user.uid,
-        'name': user.displayName ?? 'NitePlanner',
+        'name': user.displayName ?? 'Whyly User',
         'email': user.email ?? '',
         'isGuest': user.isAnonymous,
         'joinDate': DayHelper.todayString(),

@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'sync_manager.dart';
 
-const kSyncTaskName = 'niteplan_background_sync';
+const kSyncTaskName = 'whyly_background_sync';
 
 // Must be top-level function
 @pragma('vm:entry-point')

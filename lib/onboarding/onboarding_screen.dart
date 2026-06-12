@@ -167,7 +167,18 @@ class _WelcomePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('🌙', style: TextStyle(fontSize: 64)),
+          Container(
+            width: 100, height: 100,
+            decoration: BoxDecoration(
+              color: kCardBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: kDivider),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(19),
+              child: Image.asset('assets/whyly_logo.png', fit: BoxFit.cover),
+            ),
+          ),
           const SizedBox(height: 16),
           const Text('Whyly', style: TextStyle(color: kTextPrimary, fontSize: 36, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
@@ -276,7 +287,7 @@ class _LanguagePage extends StatelessWidget {
           const Text('🌐', style: TextStyle(fontSize: 48)),
           const SizedBox(height: 16),
           const Text(
-            'How would you like\nNitePlan to guide you?',
+            'How would you like\nWhyly to guide you?',
             style: TextStyle(color: kTextPrimary, fontSize: 24, fontWeight: FontWeight.w900, height: 1.3),
           ),
           const SizedBox(height: 8),

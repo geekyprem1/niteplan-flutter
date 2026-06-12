@@ -12,6 +12,7 @@ import 'screens/active_timer_tab.dart';
 import 'screens/reflection_tab.dart';
 import 'screens/discipline_score_tab.dart';
 import 'profile/profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +40,7 @@ class NitePlanApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NitePlan',
+      title: 'Whyly',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       home: AuthGate(home: const NitePlanHome()),

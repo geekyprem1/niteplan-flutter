@@ -4,6 +4,9 @@ import '../viewmodel/task_viewmodel.dart';
 import '../data/task_model.dart';
 import '../theme/app_theme.dart';
 import '../l10n/language_provider.dart';
+import '../data/identity_level_model.dart';
+import '../l10n/motivation_messages.dart';
+
 
 class SchedulerTab extends StatefulWidget {
   final Function(int)? onTabSelected;
@@ -20,12 +23,6 @@ class _SchedulerTabState extends State<SchedulerTab> {
     final lang = context.watch<LanguageProvider>();
     final todayTasks = vm.todayTasks;
 
-    // Calculate progress stats
-    final totalPlanned = todayTasks.length;
-    final totalCompleted = todayTasks.where((t) => t.status == 'DONE').toList().length;
-    final totalRemaining = todayTasks.where((t) => t.status == 'PENDING' || t.status == 'RUNNING').toList().length;
-    final progressRatio = totalPlanned > 0 ? totalCompleted / totalPlanned : 0.0;
-
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
@@ -33,16 +30,16 @@ class _SchedulerTabState extends State<SchedulerTab> {
         _buildHeroCard(vm, lang),
         const SizedBox(height: 16),
 
-        // 2. Today's Progress Card
-        _buildProgressCard(totalPlanned, totalCompleted, totalRemaining, progressRatio, lang),
+        // 2. Reliability Score Card
+        _buildReliabilityCard(vm, lang),
         const SizedBox(height: 16),
 
-        // 3. Daily Insight Card (Behavioral Insights)
+        // 3. Identity Level Card
+        _buildIdentityCard(vm, lang),
+        const SizedBox(height: 16),
+
+        // 4. Daily Insight Card (Behavioral Insights)
         _buildDailyInsightCard(vm, lang),
-        const SizedBox(height: 16),
-
-        // 4. Reflection Card (Dedicated "Understanding Yourself" Card)
-        _buildReflectionCard(context, vm, lang),
         const SizedBox(height: 24),
 
         // 5. Today's Tasks header
@@ -65,6 +62,10 @@ class _SchedulerTabState extends State<SchedulerTab> {
           _buildEmptyPlanning(context, vm, lang)
         else
           ...todayTasks.map((t) => _HomeTaskCard(task: t, vm: vm, key: ValueKey(t.id))),
+        const SizedBox(height: 24),
+
+        // 7. Reflection Card (Dedicated "Understanding Yourself" Card)
+        _buildReflectionCard(context, vm, lang),
       ],
     );
   }
@@ -75,9 +76,13 @@ class _SchedulerTabState extends State<SchedulerTab> {
     final score = vm.currentScore?.totalScore.toInt() ?? 0;
     final label = score == 0
         ? lang.tr('score_empty_level')
-        : (vm.currentScore?.label ?? lang.tr('score_beginner'));
+        : "Level ${vm.currentLevel.level} • ${lang.tr(vm.currentLevel.nameKey)}";
     final trend = _getWeeklyTrend(vm);
-    final insight = _getMotivationalInsight(vm, lang);
+    
+    final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
+    final insight = score == 0
+        ? lang.tr('score_empty_body')
+        : MotivationMessages.getMessage(lang.language, vm.currentLevel.level, dayOfYear);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -174,8 +179,10 @@ class _SchedulerTabState extends State<SchedulerTab> {
     );
   }
 
-  Widget _buildProgressCard(int planned, int completed, int remaining, double ratio, LanguageProvider lang) {
-    final isEmpty = planned == 0;
+  Widget _buildReliabilityCard(TaskViewModel vm, LanguageProvider lang) {
+    final made = vm.promisesMadeCount;
+    final kept = vm.promisesKeptCount;
+    final rel = vm.reliabilityScore;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -191,42 +198,241 @@ class _SchedulerTabState extends State<SchedulerTab> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                lang.tr('home_progress_title'),
-                style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                lang.tr('weekly_success_rate').toUpperCase(),
+                style: const TextStyle(color: kTextMuted, fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.bold),
               ),
               Text(
-                isEmpty ? lang.tr('progress_empty_label') : '$completed/$planned completed',
-                style: TextStyle(color: isEmpty ? kAccent : kSuccess, fontWeight: FontWeight.bold, fontSize: 12),
+                '${rel.toStringAsFixed(1)}% Reliability',
+                style: TextStyle(
+                  color: rel >= 70 ? kSuccess : (rel >= 40 ? kWarning : kDanger),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          if (isEmpty)
-            Text(
-              lang.tr('progress_empty_body'),
-              style: const TextStyle(color: kTextMuted, fontSize: 12.5, height: 1.4),
-            )
-          else ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: ratio,
-                minHeight: 6,
-                backgroundColor: kDivider,
-                valueColor: const AlwaysStoppedAnimation<Color>(kSuccess),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: rel / 100,
+              minHeight: 8,
+              backgroundColor: kDivider,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                rel >= 70 ? kSuccess : (rel >= 40 ? kWarning : kDanger),
               ),
             ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(child: _progressMiniStat(planned.toString(), lang.tr('home_planned'), kAccentLight)),
-                Container(width: 1, height: 24, color: kDivider),
-                Expanded(child: _progressMiniStat(completed.toString(), lang.tr('home_completed'), kSuccess)),
-                Container(width: 1, height: 24, color: kDivider),
-                Expanded(child: _progressMiniStat(remaining.toString(), lang.tr('home_remaining'), kTextMuted)),
-              ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _progressMiniStat(
+                  made.toString(),
+                  'Promises Made',
+                  kAccentLight,
+                ),
+              ),
+              Container(width: 1, height: 28, color: kDivider),
+              Expanded(
+                child: _progressMiniStat(
+                  kept.toString(),
+                  'Promises Kept',
+                  kSuccess,
+                ),
+              ),
+              Container(width: 1, height: 28, color: kDivider),
+              Expanded(
+                child: Column(
+                  children: [
+                    Text(
+                      '${(made - kept).clamp(0, 99999)}',
+                      style: const TextStyle(color: kDanger, fontWeight: FontWeight.w900, fontSize: 16),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text('Broken', style: TextStyle(color: kTextMuted, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.shield_outlined, color: kAccent, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  rel >= 70
+                      ? 'Your reliability indicates high self-trust. You keep the promises you make.'
+                      : 'Every broken promise damages self-trust. Focus on completing what you plan.',
+                  style: const TextStyle(color: kTextMuted, fontSize: 11.5, height: 1.3),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIdentityCard(TaskViewModel vm, LanguageProvider lang) {
+    final currentLevel = vm.currentLevel;
+    final nextLevelNum = currentLevel.level < 20 ? currentLevel.level + 1 : 20;
+    final nextLevel = IdentityLevelRegistry.getLevel(nextLevelNum);
+    final isMax = currentLevel.level == 20;
+
+    List<Widget> reqWidgets = [];
+    if (!isMax) {
+      Widget buildCheckItem(String label, bool met) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Row(
+            children: [
+              Icon(
+                met ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+                size: 14,
+                color: met ? kSuccess : kTextMuted,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: met ? kTextPrimary : kTextMuted,
+                  fontSize: 12,
+                  decoration: met ? TextDecoration.lineThrough : TextDecoration.none,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      final double bestDiscipline = vm.personalRecords['best_discipline_score'] ?? 0.0;
+      switch (nextLevel.level) {
+        case 2:
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/3 Reflections', vm.reflectionsLoggedCount >= 3));
+          break;
+        case 3:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/5 Promises', vm.promisesKeptCount >= 5));
+          break;
+        case 4:
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/5 Reflections', vm.reflectionsLoggedCount >= 5));
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/40.0% Reliability', vm.reliabilityScore >= 40.0));
+          break;
+        case 5:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/10 Promises', vm.promisesKeptCount >= 10));
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/7 Reflections', vm.reflectionsLoggedCount >= 7));
+          break;
+        case 6:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/15 Promises', vm.promisesKeptCount >= 15));
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/45.0% Reliability', vm.reliabilityScore >= 45.0));
+          break;
+        case 7:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/25 Promises', vm.promisesKeptCount >= 25));
+          break;
+        case 8:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/35 Promises', vm.promisesKeptCount >= 35));
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/50.0% Reliability', vm.reliabilityScore >= 50.0));
+          break;
+        case 9:
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/15 Reflections', vm.reflectionsLoggedCount >= 15));
+          break;
+        case 10:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/45 Promises', vm.promisesKeptCount >= 45));
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/55.0% Reliability', vm.reliabilityScore >= 55.0));
+          break;
+        case 11:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/60 Promises', vm.promisesKeptCount >= 60));
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/20 Reflections', vm.reflectionsLoggedCount >= 20));
+          break;
+        case 12:
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/30 Reflections', vm.reflectionsLoggedCount >= 30));
+          break;
+        case 13:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/80 Promises', vm.promisesKeptCount >= 80));
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/60.0% Reliability', vm.reliabilityScore >= 60.0));
+          break;
+        case 14:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/100 Promises', vm.promisesKeptCount >= 100));
+          reqWidgets.add(buildCheckItem('Best Discipline Score ${bestDiscipline.toStringAsFixed(1)}/65.0', bestDiscipline >= 65.0));
+          break;
+        case 15:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/125 Promises', vm.promisesKeptCount >= 125));
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/40 Reflections', vm.reflectionsLoggedCount >= 40));
+          break;
+        case 16:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/150 Promises', vm.promisesKeptCount >= 150));
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/70.0% Reliability', vm.reliabilityScore >= 70.0));
+          break;
+        case 17:
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/75.0% Reliability', vm.reliabilityScore >= 75.0));
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/175 Promises', vm.promisesKeptCount >= 175));
+          break;
+        case 18:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/200 Promises', vm.promisesKeptCount >= 200));
+          reqWidgets.add(buildCheckItem('Best Discipline Score ${bestDiscipline.toStringAsFixed(1)}/75.0', bestDiscipline >= 75.0));
+          break;
+        case 19:
+          reqWidgets.add(buildCheckItem('Log ${vm.reflectionsLoggedCount}/60 Reflections', vm.reflectionsLoggedCount >= 60));
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/225 Promises', vm.promisesKeptCount >= 225));
+          break;
+        case 20:
+          reqWidgets.add(buildCheckItem('Keep ${vm.promisesKeptCount}/250 Promises', vm.promisesKeptCount >= 250));
+          reqWidgets.add(buildCheckItem('Reach ${vm.reliabilityScore.toStringAsFixed(1)}%/80.0% Reliability', vm.reliabilityScore >= 80.0));
+          reqWidgets.add(buildCheckItem('Best Discipline Score ${bestDiscipline.toStringAsFixed(1)}/80.0', bestDiscipline >= 80.0));
+          break;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kCardBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kDivider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.verified_user_outlined, color: kAccent, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Identity Level ${currentLevel.level}/20'.toUpperCase(),
+                style: const TextStyle(color: kTextMuted, fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            lang.tr(currentLevel.nameKey),
+            style: const TextStyle(color: kTextPrimary, fontSize: 18, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            lang.tr(currentLevel.descKey),
+            style: const TextStyle(color: kTextMuted, fontSize: 12.5, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 8),
+          if (isMax)
+            const Text(
+              '🏆 Maximum identity reached. You are an Unstoppable Force.',
+              style: TextStyle(color: kSuccess, fontSize: 13, fontWeight: FontWeight.bold),
+            )
+          else ...[
+            Text(
+              'Next Path: ${lang.tr(nextLevel.nameKey)} (Level ${nextLevel.level})',
+              style: const TextStyle(color: kTextPrimary, fontSize: 13, fontWeight: FontWeight.bold),
             ),
-          ],
+            const SizedBox(height: 4),
+            ...reqWidgets,
+          ]
         ],
       ),
     );
@@ -241,6 +447,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
       ],
     );
   }
+
 
   Widget _buildDailyInsightCard(TaskViewModel vm, LanguageProvider lang) {
     final isHi = lang.isHinglish;
@@ -438,70 +645,6 @@ class _SchedulerTabState extends State<SchedulerTab> {
     return "$diff";
   }
 
-  String _getMotivationalInsight(TaskViewModel vm, LanguageProvider lang) {
-    final isHi = lang.isHinglish;
-
-    // 1. Gather all completed/history metrics
-    final completedCount = vm.allTasks.where((t) => t.status == 'DONE').length;
-    
-    final activeStats = List<LifeAreaStat>.from(vm.lifeAreaStats)
-      ..sort((a, b) => b.completed.compareTo(a.completed));
-    final strongest = activeStats.isNotEmpty && activeStats.first.completed > 0
-        ? activeStats.first
-        : null;
-
-    final trendStr = _getWeeklyTrend(vm);
-    final isImproving = trendStr.startsWith('+') && trendStr != '+0';
-
-    // 2. Build list of applicable motivational insights
-    final List<String> availableInsights = [];
-    if (isImproving) {
-      availableInsights.add(lang.tr('score_insight_consistency'));
-    }
-    if (strongest != null) {
-      availableInsights.add(
-        '${lang.tr('score_insight_strongest_prefix')}${lang.tr('area_${strongest.area.name}')}${lang.tr('score_insight_strongest_suffix')}'
-      );
-    }
-    if (completedCount > 0) {
-      availableInsights.add(
-        '${lang.tr('score_insight_milestone_prefix')}$completedCount${lang.tr('score_insight_milestone_suffix')}'
-      );
-    }
-
-    // 3. Return a dynamic message if there's sufficient user history/milestone data
-    if (availableInsights.isNotEmpty) {
-      final day = DateTime.now().day;
-      return availableInsights[day % availableInsights.length];
-    }
-
-    // 4. Fallback to failure insights or general messaging
-    if (vm.failureInsights.isNotEmpty) {
-      final top = vm.failureInsights.first;
-      final categoryName = top.category.toLowerCase();
-      if (categoryName.contains('distract')) {
-        return isHi
-            ? "Phone scrolling ki wajah se tasks miss ho rahe hain. DND mode use karo!"
-            : "Phone scrolling is causing missed tasks. Try using Do-Not-Disturb mode.";
-      } else if (categoryName.contains('energy') || categoryName.contains('lowenergy')) {
-        return isHi
-            ? "Thakaan ke karan kaam ruk rahe hain. Raat 9 PM ke baad simple tasks hi rakho."
-            : "Fatigue is leading to missed tasks. Keep plans light and simple after 9 PM.";
-      } else if (categoryName.contains('time') || categoryName.contains('timeissues')) {
-        return isHi
-            ? "Time management issues detected. Do tasks ke beech me buffers badhao."
-            : "Time issues detected. Increase buffers between consecutive tasks.";
-      } else if (categoryName.contains('planning') || categoryName.contains('poorplanning')) {
-        return isHi
-            ? "Over-planning ho rahi hai. Aaj raat sirf 2-3 essential tasks hi schedule karo."
-            : "Over-planning detected. Schedule only 2-3 essential tasks for tonight.";
-      }
-    }
-
-    return isHi
-        ? "Great momentum! Aaj raat ke tasks time pe start karke consistency maintain rakho."
-        : "Great momentum! Start tonight's tasks on time to maintain your consistency.";
-  }
 
   void _showAddTaskSheet(BuildContext context, TaskViewModel vm, LanguageProvider lang) {
     showModalBottomSheet(

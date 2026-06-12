@@ -6,6 +6,13 @@ import '../data/task_model.dart';
 import '../data/daily_reflection_model.dart';
 import '../data/discipline_score_model.dart';
 import '../data/future_self_letter_model.dart';
+import '../data/identity_level_model.dart';
+import '../data/milestone_model.dart';
+import '../l10n/app_strings.dart';
+import '../l10n/motivation_messages.dart';
+import '../services/notification_service.dart';
+
+
 
 // ─────────────────────────────────────────────
 // Supporting Data Classes
@@ -115,6 +122,7 @@ FailureCategory categorizeReason(String reason) {
 
 class TaskViewModel extends ChangeNotifier {
   final _db = NitePlanDatabase.instance;
+  final Set<int> _dismissedAlertTaskIds = {};
 
   // ── Tasks State ──
   List<Task> _allTasks = [];
@@ -167,6 +175,32 @@ class TaskViewModel extends ChangeNotifier {
   List<FutureSelfLetter> _letters = [];
   List<FutureSelfLetter> get letters => _letters;
 
+  // ── Whyly Progression State ──
+  List<String> _unlockedMilestones = [];
+  List<String> get unlockedMilestones => _unlockedMilestones;
+
+  Map<String, double> _personalRecords = {};
+  Map<String, double> get personalRecords => _personalRecords;
+
+  List<Map<String, dynamic>> _growthTimelinePoints = [];
+  List<Map<String, dynamic>> get growthTimelinePoints => _growthTimelinePoints;
+
+  IdentityLevel _currentLevel = IdentityLevelRegistry.getLevel(1);
+  IdentityLevel get currentLevel => _currentLevel;
+
+  int _promisesKeptCount = 0;
+  int get promisesKeptCount => _promisesKeptCount;
+
+  int _promisesMadeCount = 0;
+  int get promisesMadeCount => _promisesMadeCount;
+
+  double _reliabilityScore = 0.0;
+  double get reliabilityScore => _reliabilityScore;
+
+  int _reflectionsLoggedCount = 0;
+  int get reflectionsLoggedCount => _reflectionsLoggedCount;
+
+
   // ── Misc ──
   String _motivationText = '';
   String get motivationText => _motivationText;
@@ -197,8 +231,57 @@ class TaskViewModel extends ChangeNotifier {
 
   Future<void> _init() async {
     await _loadMotivation();
+    await NotificationService.instance.init();
+
+    // Set callback for notification tap
+    NotificationService.instance.onNotificationTapped = (taskId) {
+      _handleNotificationTap(taskId);
+    };
+
     await _loadAllData();
-    _startScheduleObserver();
+
+    // Request notification and exact alarm permissions
+    await NotificationService.instance.requestPermissions();
+
+    // Reschedule all active pending reminders on startup
+    await NotificationService.instance.rescheduleAllPendingReminders(pendingTasks);
+
+    // Check cold-start notification tap
+    final coldStartTaskId = NotificationService.instance.consumeInitialTappedTaskId();
+    if (coldStartTaskId != null) {
+      _handleNotificationTap(coldStartTaskId);
+    } else {
+      // Check for any missed alarms when the app starts
+      _checkMissedAlarmsOnStartup();
+    }
+  }
+
+  Future<void> _handleNotificationTap(int taskId) async {
+    if (_allTasks.isEmpty) {
+      await _loadTasks();
+    }
+    final task = _allTasks.where((t) => t.id == taskId).firstOrNull;
+    if (task != null && task.status == 'PENDING') {
+      await triggerTaskAlert(task);
+    }
+  }
+
+  void _checkMissedAlarmsOnStartup() {
+    final now = DateTime.now();
+    final todayStr = DailyReflection.todayDate();
+    final missedTask = _allTasks.where((t) {
+      if (t.status != 'PENDING') return false;
+      if (t.plannedDate != todayStr) return false;
+      if (t.id != null && _dismissedAlertTaskIds.contains(t.id)) return false;
+      
+      final taskMinutes = t.hour * 60 + t.minute;
+      final nowMinutes = now.hour * 60 + now.minute;
+      return taskMinutes <= nowMinutes;
+    }).firstOrNull;
+    
+    if (missedTask != null) {
+      triggerTaskAlert(missedTask);
+    }
   }
 
   Future<void> _loadAllData() async {
@@ -208,11 +291,185 @@ class TaskViewModel extends ChangeNotifier {
       _loadRecentReflections(),
       _loadScoreHistory(),
       _loadLetters(),
+      _loadProgressionData(),
     ]);
     _buildAllAnalytics();
     await _snapshotDailyScore();
+    await checkProgressionTriggers();
     notifyListeners();
   }
+
+  Future<void> _loadProgressionData() async {
+    _unlockedMilestones = await _db.getUnlockedMilestones();
+    final records = await _db.getPersonalRecords();
+    _personalRecords = {
+      for (var r in records) r['key'] as String: (r['value'] as num).toDouble()
+    };
+    _growthTimelinePoints = await _db.getGrowthTimelinePoints();
+    _reflectionsLoggedCount = await _db.getReflectionsCount();
+  }
+
+  void _calculateCurrentLevel() {
+    double bestDiscipline = _personalRecords['best_discipline_score'] ?? 0.0;
+    int maxLevel = 1;
+    for (int l = 2; l <= 20; l++) {
+      final idLevel = IdentityLevelRegistry.getLevel(l);
+      if (idLevel.canUnlock(
+        promisesKept: _promisesKeptCount,
+        reflectionsLogged: _reflectionsLoggedCount,
+        reliability: _reliabilityScore,
+        bestDisciplineScore: bestDiscipline,
+      )) {
+        if (maxLevel == l - 1) {
+          maxLevel = l;
+        }
+      }
+    }
+    _currentLevel = IdentityLevelRegistry.getLevel(maxLevel);
+  }
+
+  Future<void> checkProgressionTriggers() async {
+    // 1. Reliability & Completion metrics
+    final finishedTasks = _allTasks.where((t) => t.status == 'DONE' || t.status == 'NOT_DONE').toList();
+    _promisesMadeCount = finishedTasks.length;
+    _promisesKeptCount = finishedTasks.where((t) => t.status == 'DONE').length;
+    _reliabilityScore = _promisesMadeCount > 0 ? (_promisesKeptCount / _promisesMadeCount * 100) : 0.0;
+
+    // 2. Personal Records updates
+
+    
+    // best_discipline_score
+    final currentScoreVal = _currentScore?.totalScore ?? 0.0;
+    final bestScoreVal = _personalRecords['best_discipline_score'] ?? 0.0;
+    if (currentScoreVal > bestScoreVal) {
+      await _db.savePersonalRecord('best_discipline_score', currentScoreVal, 'Set on ${_dateString(DateTime.now())}');
+    }
+
+    // best_streak
+    final bestStreakVal = _personalRecords['best_streak'] ?? 0.0;
+    if (_currentStreak > bestStreakVal) {
+      await _db.savePersonalRecord('best_streak', _currentStreak.toDouble(), 'Achieved on ${_dateString(DateTime.now())}');
+    }
+
+    // best_reliability
+    final bestRelVal = _personalRecords['best_reliability'] ?? 0.0;
+    if (_promisesMadeCount >= 5 && _reliabilityScore > bestRelVal) {
+      await _db.savePersonalRecord('best_reliability', _reliabilityScore, 'Reached after $_promisesMadeCount promises');
+    }
+
+    // best_planning_accuracy
+    final bestPlanVal = _personalRecords['best_planning_accuracy'] ?? 0.0;
+    final currentPlanVal = _weeklyAccuracy.accuracy;
+    if (_promisesMadeCount >= 5 && currentPlanVal > bestPlanVal) {
+      await _db.savePersonalRecord('best_planning_accuracy', currentPlanVal, 'Reached with weekly accuracy');
+    }
+
+    // Cumulatives
+    await _db.savePersonalRecord('total_promises_kept', _promisesKeptCount.toDouble(), '');
+    await _db.savePersonalRecord('total_promises_made', _promisesMadeCount.toDouble(), '');
+    await _db.savePersonalRecord('total_reflections_logged', _reflectionsLoggedCount.toDouble(), '');
+
+    // Reload progression data
+    await _loadProgressionData();
+
+    // 3. Level Upgrade
+    _calculateCurrentLevel();
+
+    // 4. Milestone checks
+    for (final ms in MilestoneRegistry.milestones) {
+      if (_unlockedMilestones.contains(ms.id)) continue;
+
+      bool meetsCriteria = false;
+      final parts = ms.id.split('_');
+      final category = ms.category;
+
+      if (category == 'kept') {
+        final val = int.tryParse(parts.last) ?? 0;
+        meetsCriteria = _promisesKeptCount >= val;
+      } else if (category == 'made') {
+        final val = int.tryParse(parts.last) ?? 0;
+        meetsCriteria = _promisesMadeCount >= val;
+      } else if (category == 'reflection') {
+        final val = int.tryParse(parts.last) ?? 0;
+        meetsCriteria = _reflectionsLoggedCount >= val;
+      } else if (category == 'streak') {
+        final val = int.tryParse(parts.last) ?? 0;
+        meetsCriteria = _currentStreak >= val;
+      } else if (category == 'score') {
+        final val = double.tryParse(parts.last) ?? 0.0;
+        meetsCriteria = (_personalRecords['best_discipline_score'] ?? 0.0) >= val;
+      } else if (category == 'reliability') {
+        final val = double.tryParse(parts.last) ?? 0.0;
+        meetsCriteria = (_personalRecords['best_reliability'] ?? 0.0) >= val;
+      } else if (category == 'planning') {
+        final val = double.tryParse(parts.last) ?? 0.0;
+        meetsCriteria = (_personalRecords['best_planning_accuracy'] ?? 0.0) >= val;
+      } else if (category == 'area') {
+        if (ms.id.startsWith('area_balance_')) {
+          final countVal = LifeArea.values.where((area) {
+            return _allTasks.where((t) => t.status == 'DONE' && t.lifeArea == area.name).length >= 5;
+          }).length;
+          if (ms.id == 'area_balance_3') meetsCriteria = countVal >= 3;
+          if (ms.id == 'area_balance_5') meetsCriteria = countVal >= 5;
+          if (ms.id == 'area_balance_all') meetsCriteria = countVal >= 7;
+        } else {
+          final areaName = parts[1];
+          meetsCriteria = _allTasks.where((t) => t.status == 'DONE' && t.lifeArea == areaName).length >= 10;
+        }
+      } else if (category == 'time') {
+        final tod = parts[1];
+        final val = int.tryParse(parts.last) ?? 0;
+        int todCount = 0;
+        if (tod == 'morn') {
+          todCount = _allTasks.where((t) => t.status == 'DONE' && t.hour >= 5 && t.hour < 12).length;
+        } else if (tod == 'aft') {
+          todCount = _allTasks.where((t) => t.status == 'DONE' && t.hour >= 12 && t.hour < 17).length;
+        } else if (tod == 'eve') {
+          todCount = _allTasks.where((t) => t.status == 'DONE' && t.hour >= 17 && t.hour < 21).length;
+        } else if (tod == 'night') {
+          todCount = _allTasks.where((t) => t.status == 'DONE' && (t.hour >= 21 || t.hour < 5)).length;
+        }
+        meetsCriteria = todCount >= val;
+      } else if (category == 'week') {
+        final val = int.tryParse(parts.last) ?? 0;
+        meetsCriteria = _reflectionsLoggedCount >= 7 * val;
+      } else if (category == 'letter') {
+        if (ms.id == 'let_write_1') meetsCriteria = _letters.length >= 1;
+        if (ms.id == 'let_write_3') meetsCriteria = _letters.length >= 3;
+        if (ms.id == 'let_unlock_1') meetsCriteria = _letters.where((l) => l.isUnlocked).length >= 1;
+        if (ms.id == 'let_unlock_3') meetsCriteria = _letters.where((l) => l.isUnlocked).length >= 3;
+      } else if (category == 'fail') {
+        final val = int.tryParse(parts.last) ?? 0;
+        meetsCriteria = _allTasks.where((t) => t.status == 'NOT_DONE' && t.reason.isNotEmpty).length >= val;
+      }
+
+      if (meetsCriteria) {
+        await _db.unlockMilestone(ms.id);
+        _unlockedMilestones.add(ms.id);
+      }
+    }
+
+    // 5. Growth Timeline save point
+    if (_currentScore != null) {
+      await _db.saveGrowthTimelinePoint(
+        _dateString(DateTime.now()),
+        _currentScore!.totalScore,
+        _reliabilityScore,
+        _currentLevel.level,
+        _promisesKeptCount,
+      );
+      _growthTimelinePoints = await _db.getGrowthTimelinePoints();
+    }
+
+    // 6. Update motivation message dynamically
+    _updateMotivationText();
+  }
+
+  void _updateMotivationText() {
+    final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays;
+    _motivationText = MotivationMessages.getMessage(AppLanguage.english, _currentLevel.level, dayOfYear);
+  }
+
 
   // ─────────────────────────────────────────────
   // MOTIVATION
@@ -257,7 +514,9 @@ class TaskViewModel extends ChangeNotifier {
       minute: minute,
       durationMinutes: (durationHr * 60).toInt(),
     );
-    await _db.insertTask(task);
+    final id = await _db.insertTask(task);
+    final taskWithId = task.copyWith(id: id);
+    await NotificationService.instance.scheduleTaskReminder(taskWithId);
     await _loadAllData();
   }
 
@@ -267,6 +526,9 @@ class TaskViewModel extends ChangeNotifier {
       _runningTask = null;
       _timerIsRunning = false;
     }
+    if (task.id != null) {
+      await NotificationService.instance.cancelTaskReminder(task.id!);
+    }
     await _db.deleteTask(task.id!);
     await _loadAllData();
   }
@@ -274,12 +536,21 @@ class TaskViewModel extends ChangeNotifier {
   Future<void> triggerTaskAlert(Task task) async {
     final updated = task.copyWith(status: 'RUNNING');
     await _db.updateTask(updated);
+    if (task.id != null) {
+      await NotificationService.instance.cancelTaskReminder(task.id!);
+    }
     _notificationAlertTask = updated;
     startTimerForTask(updated);
     await _loadAllData();
   }
 
-  void dismissAlert() { _notificationAlertTask = null; notifyListeners(); }
+  void dismissAlert() {
+    if (_notificationAlertTask?.id != null) {
+      _dismissedAlertTaskIds.add(_notificationAlertTask!.id!);
+    }
+    _notificationAlertTask = null;
+    notifyListeners();
+  }
 
   void startTimerForTask(Task task) {
     _timerTick?.cancel();
@@ -353,6 +624,9 @@ class TaskViewModel extends ChangeNotifier {
       completedAt: DateTime.now().millisecondsSinceEpoch,
     );
     await _db.updateTask(updated);
+    if (task.id != null) {
+      await NotificationService.instance.cancelTaskReminder(task.id!);
+    }
     _feedbackDialogTask = null;
     if (_runningTask?.id == task.id) {
       _runningTask = null;
@@ -382,8 +656,10 @@ class TaskViewModel extends ChangeNotifier {
     await _loadTodayReflection();
     await _loadRecentReflections();
     await _snapshotDailyScore();
+    await checkProgressionTriggers();
     notifyListeners();
   }
+
 
   // ─────────────────────────────────────────────
   // DISCIPLINE SCORE
@@ -616,20 +892,7 @@ class TaskViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─────────────────────────────────────────────
-  // SCHEDULE OBSERVER
-  // ─────────────────────────────────────────────
 
-  void _startScheduleObserver() {
-    _scheduleObserver?.cancel();
-    _scheduleObserver = Timer.periodic(const Duration(seconds: 30), (_) {
-      final now = DateTime.now();
-      final match = _allTasks
-          .where((t) => t.status == 'PENDING' && t.hour == now.hour && t.minute == now.minute)
-          .firstOrNull;
-      if (match != null) triggerTaskAlert(match);
-    });
-  }
 
   // ─────────────────────────────────────────────
   // HELPERS

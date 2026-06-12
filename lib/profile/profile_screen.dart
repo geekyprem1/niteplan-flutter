@@ -46,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isGuest ? lang.tr('profile_guest') : (user?.displayName ?? 'NitePlanner'),
+                        isGuest ? lang.tr('profile_guest') : (user?.displayName ?? 'Whyly User'),
                         style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       Text(
