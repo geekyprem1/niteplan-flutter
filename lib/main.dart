@@ -81,15 +81,31 @@ class _NitePlanHomeState extends State<NitePlanHome> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('NITEPLAN', style: TextStyle(color: kAccent, fontSize: 10, letterSpacing: 2, fontWeight: FontWeight.bold)),
             Row(
               children: [
-                const Text('🌙 ', style: TextStyle(fontSize: 14)),
                 Text(
-                  tabTitles[_tab],
-                  style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 18),
+                  lang.tr('app_name'),
+                  style: const TextStyle(color: kTextPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: kAccent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: kAccent.withValues(alpha: 0.4), width: 0.8),
+                  ),
+                  child: Text(
+                    lang.tr('app_tagline_premium').toUpperCase(),
+                    style: const TextStyle(color: kAccent, fontSize: 7.5, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  ),
                 ),
               ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              tabTitles[_tab],
+              style: const TextStyle(color: kTextMuted, fontWeight: FontWeight.w500, fontSize: 12),
             ),
           ],
         ),

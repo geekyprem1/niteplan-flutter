@@ -9,7 +9,7 @@ class AppStrings {
   static const Map<String, Map<AppLanguage, String>> _strings = {
 
     // ── APP ──
-    'app_name': {AppLanguage.english: 'NitePlan', AppLanguage.hinglish: 'NitePlan'},
+    'app_name': {AppLanguage.english: 'Night Plan', AppLanguage.hinglish: 'Night Plan'},
     'app_tagline': {AppLanguage.english: 'Plan the night. Grow every day.', AppLanguage.hinglish: 'Raat ko plan karo. Har roz grow karo.'},
 
     // ── TABS ──
@@ -265,6 +265,32 @@ class AppStrings {
     'reason_fail_planning': {AppLanguage.english: 'Poor Planning', AppLanguage.hinglish: 'Kaam zyada bada tha (Poor Planning)'},
     'reason_fail_motivation': {AppLanguage.english: 'Motivation Low', AppLanguage.hinglish: 'Mann nahi tha (Motivation Low)'},
     'reason_fail_time': {AppLanguage.english: 'Time Issues', AppLanguage.hinglish: 'Time nahi mila (Time Issues)'},
+
+    // ── ONBOARDING & EMPTY STATES UX IMPROVEMENTS ──
+    'app_tagline_premium': {AppLanguage.english: 'Understand Why You Fail', AppLanguage.hinglish: 'Samjho Fail Kyun Hote Ho'},
+    'score_empty_level': {AppLanguage.english: 'Level 1 • Beginning Your Journey', AppLanguage.hinglish: 'Level 1 • Safar Ki Shuruat'},
+    'score_empty_title': {AppLanguage.english: 'Your growth journey starts today.', AppLanguage.hinglish: 'Aapki growth journey aaj se shuru hoti hai.'},
+    'score_empty_body': {AppLanguage.english: 'Complete your first task to unlock insights and build your Discipline Score.', AppLanguage.hinglish: 'Insights unlock karne aur Discipline Score badhane ke liye apna pehla task poora karo.'},
+    'score_insight_strongest_prefix': {AppLanguage.english: 'Your strongest area is ', AppLanguage.hinglish: 'Aapka strongest area '},
+    'score_insight_strongest_suffix': {AppLanguage.english: '. Keep it up!', AppLanguage.hinglish: ' hai. Aise hi karte raho!'},
+    'score_insight_consistency': {AppLanguage.english: 'Your consistency is improving. Keep the momentum going!', AppLanguage.hinglish: 'Aapki consistency improve ho rahi hai. Momentum banaye rakho!'},
+    'score_insight_milestone_prefix': {AppLanguage.english: "You've completed ", AppLanguage.hinglish: 'Aapne ab tak '},
+    'score_insight_milestone_suffix': {AppLanguage.english: ' tasks so far. Great going!', AppLanguage.hinglish: ' tasks poore kiye hain. Bohot badhiya!'},
+    'insight_empty_title': {AppLanguage.english: 'WELCOME TO NIGHT PLAN', AppLanguage.hinglish: 'WELCOME TO NIGHT PLAN'},
+    'insight_empty_body_1': {AppLanguage.english: "Complete 3 tasks and we'll start discovering your patterns and habits.", AppLanguage.hinglish: '3 tasks complete karo aur hum aapke productivity patterns discover karna shuru karenge.'},
+    'insight_empty_body_2': {AppLanguage.english: "We're still learning about you. Keep using Night Plan and we'll uncover your productivity habits.", AppLanguage.hinglish: 'Hum abhi aapke baare mein seekh rahe hain. Night Plan use karte raho aur hum aapki productivity habits discover karenge.'},
+    'progress_empty_label': {AppLanguage.english: 'Ready to start', AppLanguage.hinglish: 'Start karne ke liye tayyar'},
+    'progress_empty_body': {AppLanguage.english: 'Plan your first task to begin tracking your execution consistency.', AppLanguage.hinglish: 'Apna pehla kaam schedule karo aur execution track karo.'},
+    'tasks_empty_title': {AppLanguage.english: 'No tasks planned yet', AppLanguage.hinglish: 'Aaj koi task planned nahi hai'},
+    'tasks_empty_desc': {AppLanguage.english: 'Every achievement starts with a plan.', AppLanguage.hinglish: 'Har badi shuruat ek chhote plan se hoti hai.'},
+    'tasks_empty_cta': {AppLanguage.english: 'Plan Your Day', AppLanguage.hinglish: 'Din Plan Karo'},
+    'area_health': {AppLanguage.english: 'Health', AppLanguage.hinglish: 'Health'},
+    'area_business': {AppLanguage.english: 'Business', AppLanguage.hinglish: 'Business'},
+    'area_career': {AppLanguage.english: 'Career', AppLanguage.hinglish: 'Career'},
+    'area_learning': {AppLanguage.english: 'Learning', AppLanguage.hinglish: 'Learning'},
+    'area_finance': {AppLanguage.english: 'Finance', AppLanguage.hinglish: 'Finance'},
+    'area_relationships': {AppLanguage.english: 'Relationships', AppLanguage.hinglish: 'Relationships'},
+    'area_general': {AppLanguage.english: 'General', AppLanguage.hinglish: 'General'},
   };
 
   static String get(String key, AppLanguage language) {

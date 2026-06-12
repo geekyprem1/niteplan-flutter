@@ -61,7 +61,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
 
         // 7. Today's Tasks List
         if (todayTasks.isEmpty)
-          _buildEmptyPlanning(lang)
+          _buildEmptyPlanning(context, vm, lang)
         else
           ...todayTasks.map((t) => _HomeTaskCard(task: t, vm: vm, key: ValueKey(t.id))),
       ],
@@ -72,7 +72,9 @@ class _SchedulerTabState extends State<SchedulerTab> {
 
   Widget _buildHeroCard(TaskViewModel vm, LanguageProvider lang) {
     final score = vm.currentScore?.totalScore.toInt() ?? 0;
-    final label = vm.currentScore?.label ?? lang.tr('score_beginner');
+    final label = score == 0
+        ? lang.tr('score_empty_level')
+        : (vm.currentScore?.label ?? lang.tr('score_beginner'));
     final trend = _getWeeklyTrend(vm);
     final insight = _getMotivationalInsight(vm, lang);
 
@@ -117,14 +119,21 @@ class _SchedulerTabState extends State<SchedulerTab> {
               Text('$score', style: const TextStyle(color: kTextPrimary, fontSize: 48, fontWeight: FontWeight.w900)),
               const Text('/100', style: TextStyle(color: kTextMuted, fontSize: 18, fontWeight: FontWeight.bold)),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: kAccent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kAccent.withValues(alpha: 0.3)),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: kAccent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: kAccent.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    label,
+                    style: const TextStyle(color: kAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
-                child: Text(label, style: const TextStyle(color: kAccent, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -137,10 +146,25 @@ class _SchedulerTabState extends State<SchedulerTab> {
               const Icon(Icons.psychology, color: kAccent, size: 20),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  insight,
-                  style: const TextStyle(color: kTextMuted, fontSize: 12.5, height: 1.4),
-                ),
+                child: score == 0
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            lang.tr('score_empty_title'),
+                            style: const TextStyle(color: kTextPrimary, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            lang.tr('score_empty_body'),
+                            style: const TextStyle(color: kTextMuted, fontSize: 12.5, height: 1.4),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        insight,
+                        style: const TextStyle(color: kTextMuted, fontSize: 12.5, height: 1.4),
+                      ),
               ),
             ],
           ),
@@ -150,6 +174,8 @@ class _SchedulerTabState extends State<SchedulerTab> {
   }
 
   Widget _buildProgressCard(int planned, int completed, int remaining, double ratio, LanguageProvider lang) {
+    final isEmpty = planned == 0;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -168,31 +194,38 @@ class _SchedulerTabState extends State<SchedulerTab> {
                 style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 14),
               ),
               Text(
-                '$completed/$planned completed',
-                style: const TextStyle(color: kSuccess, fontWeight: FontWeight.bold, fontSize: 12),
+                isEmpty ? lang.tr('progress_empty_label') : '$completed/$planned completed',
+                style: TextStyle(color: isEmpty ? kAccent : kSuccess, fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: ratio,
-              minHeight: 6,
-              backgroundColor: kDivider,
-              valueColor: const AlwaysStoppedAnimation<Color>(kSuccess),
+          if (isEmpty)
+            Text(
+              lang.tr('progress_empty_body'),
+              style: const TextStyle(color: kTextMuted, fontSize: 12.5, height: 1.4),
+            )
+          else ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: ratio,
+                minHeight: 6,
+                backgroundColor: kDivider,
+                valueColor: const AlwaysStoppedAnimation<Color>(kSuccess),
+              ),
             ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(child: _progressMiniStat(planned.toString(), lang.tr('home_planned'), kAccentLight)),
-              Container(width: 1, height: 24, color: kDivider),
-              Expanded(child: _progressMiniStat(completed.toString(), lang.tr('home_completed'), kSuccess)),
-              Container(width: 1, height: 24, color: kDivider),
-              Expanded(child: _progressMiniStat(remaining.toString(), lang.tr('home_remaining'), kTextMuted)),
-            ],
-          ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(child: _progressMiniStat(planned.toString(), lang.tr('home_planned'), kAccentLight)),
+                Container(width: 1, height: 24, color: kDivider),
+                Expanded(child: _progressMiniStat(completed.toString(), lang.tr('home_completed'), kSuccess)),
+                Container(width: 1, height: 24, color: kDivider),
+                Expanded(child: _progressMiniStat(remaining.toString(), lang.tr('home_remaining'), kTextMuted)),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -210,23 +243,53 @@ class _SchedulerTabState extends State<SchedulerTab> {
 
   Widget _buildDailyInsightCard(TaskViewModel vm, LanguageProvider lang) {
     final isHi = lang.isHinglish;
-    String insightText = isHi
-        ? "Aaj ke focus hours 8 PM se 10 PM ke beech hain. Mobile side me rakh dena."
-        : "Your scheduled focus hours are between 8 PM and 10 PM. Put your phone away.";
 
-    if (vm.failureInsights.isNotEmpty) {
-      final top = vm.failureInsights.first;
-      final pct = (top.percentage * 100).toInt();
-      insightText = isHi
-          ? "${top.emoji} ${top.category.replaceAll('distraction', 'Distraction').replaceAll('lowEnergy', 'Thakaan').replaceAll('timeIssues', 'Time conflicts')} ki wajah se is hafte $pct% tasks complete nahi ho paye."
-          : "${top.emoji} ${top.category.replaceAll('distraction', 'Distraction').replaceAll('lowEnergy', 'Low energy').replaceAll('timeIssues', 'Time conflicts')} caused $pct% of your missed tasks this week.";
-    } else if (vm.todayTasks.isNotEmpty) {
-      final healthTasks = vm.todayTasks.where((t) => t.lifeArea == 'health').length;
-      if (healthTasks > 0) {
-        insightText = isHi
-            ? "💪 Health ke tasks aap sabse consistently complete karte hain. Aaj bhi target poora karo!"
-            : "💪 You complete health-related tasks more consistently. Crush your target today!";
+    // Calculate completed count and days of usage
+    final completedCount = vm.allTasks.where((t) => t.status == 'DONE').length;
+    int daysOfUsage = 0;
+    if (vm.allTasks.isNotEmpty) {
+      DateTime oldest = DateTime.now();
+      for (final t in vm.allTasks) {
+        final d = DateTime.tryParse(t.plannedDate);
+        if (d != null && d.isBefore(oldest)) {
+          oldest = d;
+        }
       }
+      daysOfUsage = DateTime.now().difference(oldest).inDays + 1;
+    }
+
+    final hasSufficientData = completedCount >= 3 || daysOfUsage >= 7;
+
+    final String titleText;
+    final String insightText;
+
+    if (!hasSufficientData) {
+      titleText = lang.tr('insight_empty_title');
+      insightText = completedCount == 0
+          ? lang.tr('insight_empty_body_1')
+          : lang.tr('insight_empty_body_2');
+    } else {
+      titleText = lang.tr('home_insight_title');
+      
+      String realInsight = isHi
+          ? "Aaj ke focus hours 8 PM se 10 PM ke beech hain. Mobile side me rakh dena."
+          : "Your scheduled focus hours are between 8 PM and 10 PM. Put your phone away.";
+
+      if (vm.failureInsights.isNotEmpty) {
+        final top = vm.failureInsights.first;
+        final pct = (top.percentage * 100).toInt();
+        realInsight = isHi
+            ? "${top.emoji} ${top.category.replaceAll('distraction', 'Distraction').replaceAll('lowEnergy', 'Thakaan').replaceAll('timeIssues', 'Time conflicts')} ki wajah se is hafte $pct% tasks complete nahi ho paye."
+            : "${top.emoji} ${top.category.replaceAll('distraction', 'Distraction').replaceAll('lowEnergy', 'Low energy').replaceAll('timeIssues', 'Time conflicts')} caused $pct% of your missed tasks this week.";
+      } else if (vm.todayTasks.isNotEmpty) {
+        final healthTasks = vm.todayTasks.where((t) => t.lifeArea == 'health').length;
+        if (healthTasks > 0) {
+          realInsight = isHi
+              ? "💪 Health ke tasks aap sabse consistently complete karte hain. Aaj bhi target poora karo!"
+              : "💪 You complete health-related tasks more consistently. Crush your target today!";
+        }
+      }
+      insightText = realInsight;
     }
 
     return Container(
@@ -246,7 +309,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  lang.tr('home_insight_title'),
+                  titleText,
                   style: const TextStyle(color: kWarning, fontSize: 10, letterSpacing: 1.2, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
@@ -265,63 +328,101 @@ class _SchedulerTabState extends State<SchedulerTab> {
   Widget _buildQuickActionsRow(BuildContext context, TaskViewModel vm, LanguageProvider lang) {
     return Row(
       children: [
+        // 1. Primary Action: New Task (Indigo solid background + white text/icon + shadow)
         Expanded(
-          child: _quickActionButton(
-            icon: Icons.add_circle_outline,
-            label: lang.tr('home_action_new'),
-            color: kAccent,
+          child: GestureDetector(
             onTap: () => _showAddTaskSheet(context, vm, lang),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              decoration: BoxDecoration(
+                color: kAccent,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: kAccent.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  )
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.add_circle, color: Colors.white, size: 20),
+                  const SizedBox(height: 6),
+                  Text(
+                    lang.tr('home_action_new'),
+                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 8),
+
+        // 2. Secondary Action: Reflection (Slate bg + amber border/icon + primary text)
         Expanded(
-          child: _quickActionButton(
-            icon: Icons.nights_stay_outlined,
-            label: lang.tr('home_action_reflect'),
-            color: kWarning,
+          child: GestureDetector(
             onTap: () => widget.onTabSelected?.call(2),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              decoration: BoxDecoration(
+                color: kCardBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: kWarning.withValues(alpha: 0.4), width: 1.2),
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.nights_stay, color: kWarning, size: 20),
+                  const SizedBox(height: 6),
+                  Text(
+                    lang.tr('home_action_reflect'),
+                    style: const TextStyle(color: kTextPrimary, fontSize: 11, fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(width: 8),
+
+        // 3. Tertiary Action: Weekly Review (Semi-transparent bg + muted border + muted text)
         Expanded(
-          child: _quickActionButton(
-            icon: Icons.assignment_outlined,
-            label: lang.tr('home_action_weekly'),
-            color: kSuccess,
+          child: GestureDetector(
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const WeeklyReviewScreen()),
             ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              decoration: BoxDecoration(
+                color: kCardBg.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: kDivider.withValues(alpha: 0.5)),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.assignment_outlined, color: kSuccess.withValues(alpha: 0.6), size: 20),
+                  const SizedBox(height: 6),
+                  Text(
+                    lang.tr('home_action_weekly'),
+                    style: const TextStyle(color: kTextMuted, fontSize: 11, fontWeight: FontWeight.normal),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _quickActionButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: kCardBg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: kDivider),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(color: kTextPrimary, fontSize: 11, fontWeight: FontWeight.w600),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -361,7 +462,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
     );
   }
 
-  Widget _buildEmptyPlanning(LanguageProvider lang) {
+  Widget _buildEmptyPlanning(BuildContext context, TaskViewModel vm, LanguageProvider lang) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
@@ -371,11 +472,40 @@ class _SchedulerTabState extends State<SchedulerTab> {
       ),
       child: Column(
         children: [
-          const Text('🌙', style: TextStyle(fontSize: 40)),
-          const SizedBox(height: 12),
-          Text(lang.tr('scheduler_empty_title'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(lang.tr('scheduler_empty_sub'), style: const TextStyle(color: kTextMuted, fontSize: 12), textAlign: TextAlign.center),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: kAccent.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Text('✨', style: TextStyle(fontSize: 32)),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            lang.tr('tasks_empty_title'),
+            style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            lang.tr('tasks_empty_desc'),
+            style: const TextStyle(color: kTextMuted, fontSize: 12.5),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => _showAddTaskSheet(context, vm, lang),
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(
+              lang.tr('tasks_empty_cta'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -395,6 +525,46 @@ class _SchedulerTabState extends State<SchedulerTab> {
 
   String _getMotivationalInsight(TaskViewModel vm, LanguageProvider lang) {
     final isHi = lang.isHinglish;
+
+    // 1. Gather all completed/history metrics
+    final completedCount = vm.allTasks.where((t) => t.status == 'DONE').length;
+    
+    final activeStats = List<LifeAreaStat>.from(vm.lifeAreaStats)
+      ..sort((a, b) => b.completed.compareTo(a.completed));
+    final strongest = activeStats.isNotEmpty && activeStats.first.completed > 0
+        ? activeStats.first
+        : null;
+
+    final trendStr = _getWeeklyTrend(vm);
+    final isImproving = trendStr.startsWith('+') && trendStr != '+0';
+
+    // 2. Build list of applicable motivational insights
+    final List<String> availableInsights = [];
+    if (isImproving) {
+      availableInsights.add(lang.tr('score_insight_consistency'));
+    }
+    if (strongest != null) {
+      availableInsights.add(
+        lang.tr('score_insight_strongest_prefix') +
+        lang.tr('area_${strongest.area.name}') +
+        lang.tr('score_insight_strongest_suffix')
+      );
+    }
+    if (completedCount > 0) {
+      availableInsights.add(
+        lang.tr('score_insight_milestone_prefix') +
+        '$completedCount' +
+        lang.tr('score_insight_milestone_suffix')
+      );
+    }
+
+    // 3. Return a dynamic message if there's sufficient user history/milestone data
+    if (availableInsights.isNotEmpty) {
+      final day = DateTime.now().day;
+      return availableInsights[day % availableInsights.length];
+    }
+
+    // 4. Fallback to failure insights or general messaging
     if (vm.failureInsights.isNotEmpty) {
       final top = vm.failureInsights.first;
       final categoryName = top.category.toLowerCase();
@@ -416,6 +586,7 @@ class _SchedulerTabState extends State<SchedulerTab> {
             : "Over-planning detected. Schedule only 2-3 essential tasks for tonight.";
       }
     }
+
     return isHi
         ? "Great momentum! Aaj raat ke tasks time pe start karke consistency maintain rakho."
         : "Great momentum! Start tonight's tasks on time to maintain your consistency.";
