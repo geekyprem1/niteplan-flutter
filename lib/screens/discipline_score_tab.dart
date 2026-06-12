@@ -326,7 +326,9 @@ class _FailureIntelligenceCard extends StatelessWidget {
                 border: Border.all(color: kDanger.withValues(alpha: 0.3)),
               ),
               child: Text(
-                '${insights.first.emoji} ${insights.first.percentage.toInt()}% failures come from ${insights.first.category}',
+                lang.isHinglish
+                    ? '${insights.first.emoji} ${insights.first.percentage.toInt()}% failures ${lang.tr('fail_cat_${insights.first.categoryKey}')} ki wajah se hote hain.'
+                    : '${insights.first.emoji} ${insights.first.percentage.toInt()}% of failures come from ${lang.tr('fail_cat_${insights.first.categoryKey}')}.',
                 style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ),
@@ -345,6 +347,8 @@ class _InsightBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
+    final localizedCat = lang.tr('fail_cat_${insight.categoryKey}');
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -353,7 +357,7 @@ class _InsightBar extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${insight.emoji} ${insight.category}', style: const TextStyle(color: kTextPrimary, fontSize: 13)),
+              Text('${insight.emoji} $localizedCat', style: const TextStyle(color: kTextPrimary, fontSize: 13)),
               Text('${insight.percentage.toInt()}% · ${insight.count}x', style: const TextStyle(color: kDanger, fontWeight: FontWeight.bold, fontSize: 12)),
             ],
           ),

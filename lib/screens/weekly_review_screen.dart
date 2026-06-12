@@ -81,7 +81,9 @@ class WeeklyReviewScreen extends StatelessWidget {
           _ReviewCard(
             emoji: '🧠',
             title: lang.tr('weekly_top_failure'),
-            value: report.topFailureCategory,
+            value: report.topFailureCategoryKey == 'none'
+                ? (lang.isHinglish ? 'Koi nahi' : 'None')
+                : lang.tr('fail_cat_${report.topFailureCategoryKey}'),
             valueColor: kDanger,
             subtitle: lang.tr('weekly_failure_msg'),
           ),

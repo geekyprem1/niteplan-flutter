@@ -4,7 +4,6 @@ import '../viewmodel/task_viewmodel.dart';
 import '../data/task_model.dart';
 import '../theme/app_theme.dart';
 import '../l10n/language_provider.dart';
-import 'weekly_review_screen.dart';
 
 class SchedulerTab extends StatefulWidget {
   final Function(int)? onTabSelected;
@@ -38,28 +37,30 @@ class _SchedulerTabState extends State<SchedulerTab> {
         _buildProgressCard(totalPlanned, totalCompleted, totalRemaining, progressRatio, lang),
         const SizedBox(height: 16),
 
-        // 3. Daily Insight Card
+        // 3. Daily Insight Card (Behavioral Insights)
         _buildDailyInsightCard(vm, lang),
         const SizedBox(height: 16),
 
-        // 4. Quick Actions Row
-        _buildQuickActionsRow(context, vm, lang),
+        // 4. Reflection Card (Dedicated "Understanding Yourself" Card)
+        _buildReflectionCard(context, vm, lang),
         const SizedBox(height: 24),
 
-        // 5. Reflection Reminder (conditional)
-        if (!vm.hasReflectedToday) ...[
-          _buildReflectionReminder(lang),
-          const SizedBox(height: 24),
-        ],
-
-        // 6. Today's Tasks header
+        // 5. Today's Tasks header
         buildSectionHeader(
           lang.tr('home_tasks_title'),
           subtitle: '${lang.tr('scheduler_pending_count')} (${todayTasks.length})',
+          trailing: TextButton.icon(
+            icon: const Icon(Icons.add, size: 16, color: kAccent),
+            label: Text(
+              lang.tr('scheduler_add_task_short'),
+              style: const TextStyle(color: kAccent, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+            onPressed: () => _showAddTaskSheet(context, vm, lang),
+          ),
         ),
         const SizedBox(height: 12),
 
-        // 7. Today's Tasks List
+        // 6. Today's Tasks List
         if (todayTasks.isEmpty)
           _buildEmptyPlanning(context, vm, lang)
         else
@@ -325,133 +326,47 @@ class _SchedulerTabState extends State<SchedulerTab> {
     );
   }
 
-  Widget _buildQuickActionsRow(BuildContext context, TaskViewModel vm, LanguageProvider lang) {
-    return Row(
-      children: [
-        // 1. Primary Action: New Task (Indigo solid background + white text/icon + shadow)
-        Expanded(
-          child: GestureDetector(
-            onTap: () => _showAddTaskSheet(context, vm, lang),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              decoration: BoxDecoration(
-                color: kAccent,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: kAccent.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  )
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.add_circle, color: Colors.white, size: 20),
-                  const SizedBox(height: 6),
-                  Text(
-                    lang.tr('home_action_new'),
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // 2. Secondary Action: Reflection (Slate bg + amber border/icon + primary text)
-        Expanded(
-          child: GestureDetector(
-            onTap: () => widget.onTabSelected?.call(2),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              decoration: BoxDecoration(
-                color: kCardBg,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: kWarning.withValues(alpha: 0.4), width: 1.2),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.nights_stay, color: kWarning, size: 20),
-                  const SizedBox(height: 6),
-                  Text(
-                    lang.tr('home_action_reflect'),
-                    style: const TextStyle(color: kTextPrimary, fontSize: 11, fontWeight: FontWeight.w600),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // 3. Tertiary Action: Weekly Review (Semi-transparent bg + muted border + muted text)
-        Expanded(
-          child: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const WeeklyReviewScreen()),
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-              decoration: BoxDecoration(
-                color: kCardBg.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: kDivider.withValues(alpha: 0.5)),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.assignment_outlined, color: kSuccess.withValues(alpha: 0.6), size: 20),
-                  const SizedBox(height: 6),
-                  Text(
-                    lang.tr('home_action_weekly'),
-                    style: const TextStyle(color: kTextMuted, fontSize: 11, fontWeight: FontWeight.normal),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReflectionReminder(LanguageProvider lang) {
+  Widget _buildReflectionCard(BuildContext context, TaskViewModel vm, LanguageProvider lang) {
+    final hasReflected = vm.hasReflectedToday;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: kWarning.withValues(alpha: 0.05),
+        color: kCardBg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kWarning.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: hasReflected ? kSuccess.withValues(alpha: 0.3) : kWarning.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
-          const Text('🔔', style: TextStyle(fontSize: 24)),
+          Text(hasReflected ? '✅' : '🔔', style: const TextStyle(fontSize: 24)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  lang.tr('home_reflect_reminder'),
-                  style: const TextStyle(color: kTextPrimary, fontSize: 13, fontWeight: FontWeight.w500),
+                  lang.tr('reflect_title_card'),
+                  style: const TextStyle(color: kTextPrimary, fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  hasReflected
+                      ? lang.tr('reflect_card_done')
+                      : lang.tr('reflect_card_pending'),
+                  style: const TextStyle(color: kTextMuted, fontSize: 12.5, height: 1.4),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: () => widget.onTabSelected?.call(2),
+                  onTap: () => widget.onTabSelected?.call(2), // Navigate to Reflection Tab
                   child: Text(
-                    lang.tr('home_reflect_cta'),
-                    style: const TextStyle(color: kWarning, fontSize: 12, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                    hasReflected ? lang.tr('reflect_card_cta_edit') : lang.tr('reflect_card_cta_start'),
+                    style: TextStyle(
+                      color: hasReflected ? kSuccess : kWarning,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 ),
               ],
@@ -545,16 +460,12 @@ class _SchedulerTabState extends State<SchedulerTab> {
     }
     if (strongest != null) {
       availableInsights.add(
-        lang.tr('score_insight_strongest_prefix') +
-        lang.tr('area_${strongest.area.name}') +
-        lang.tr('score_insight_strongest_suffix')
+        '${lang.tr('score_insight_strongest_prefix')}${lang.tr('area_${strongest.area.name}')}${lang.tr('score_insight_strongest_suffix')}'
       );
     }
     if (completedCount > 0) {
       availableInsights.add(
-        lang.tr('score_insight_milestone_prefix') +
-        '$completedCount' +
-        lang.tr('score_insight_milestone_suffix')
+        '${lang.tr('score_insight_milestone_prefix')}$completedCount${lang.tr('score_insight_milestone_suffix')}'
       );
     }
 

@@ -29,10 +29,11 @@ class DayProgress {
 
 class FailureInsight {
   final String category;
+  final String categoryKey;
   final String emoji;
   final int count;
   final double percentage;
-  FailureInsight({required this.category, required this.emoji, required this.count, required this.percentage});
+  FailureInsight({required this.category, required this.categoryKey, required this.emoji, required this.count, required this.percentage});
 }
 
 class LifeAreaStat {
@@ -50,6 +51,7 @@ class WeeklyCEOReport {
   final String bestDay;
   final String worstDay;
   final String topFailureCategory;
+  final String topFailureCategoryKey;
   final double avgDisciplineScore;
   final String biggestImprovementArea;
   final int tasksCompleted;
@@ -62,6 +64,7 @@ class WeeklyCEOReport {
     required this.bestDay,
     required this.worstDay,
     required this.topFailureCategory,
+    required this.topFailureCategoryKey,
     required this.avgDisciplineScore,
     required this.biggestImprovementArea,
     required this.tasksCompleted,
@@ -511,6 +514,7 @@ class TaskViewModel extends ChangeNotifier {
     final total = categoryMap.values.fold(0, (a, b) => a + b);
     _failureInsights = categoryMap.entries.map((e) => FailureInsight(
       category: e.key.label,
+      categoryKey: e.key.name,
       emoji: e.key.emoji,
       count: e.value,
       percentage: total > 0 ? e.value / total * 100 : 0,
@@ -564,6 +568,7 @@ class TaskViewModel extends ChangeNotifier {
     }
 
     final topCat = _failureInsights.isNotEmpty ? _failureInsights.first.category : 'None';
+    final topCatKey = _failureInsights.isNotEmpty ? _failureInsights.first.categoryKey : 'none';
     final avgScore = _scoreHistory.isNotEmpty
         ? _scoreHistory.map((s) => s.totalScore).reduce((a, b) => a + b) / _scoreHistory.length
         : 0.0;
@@ -578,6 +583,7 @@ class TaskViewModel extends ChangeNotifier {
       bestDay: bestDay,
       worstDay: worstDay,
       topFailureCategory: topCat,
+      topFailureCategoryKey: topCatKey,
       avgDisciplineScore: avgScore,
       biggestImprovementArea: worstArea,
       tasksCompleted: _weeklyAccuracy.completed,

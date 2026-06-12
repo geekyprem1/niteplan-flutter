@@ -74,9 +74,6 @@ class AuthService {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
-    // Clear migration flag so data re-uploads on next login
-    final prefs = await SharedPreferences.getInstance();
-    // Keep onboarding_done true so they don't re-onboard
   }
 
   // ── Delete Account ──

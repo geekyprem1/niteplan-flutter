@@ -27,8 +27,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ('procrastination', '😴', 'Procrastination', AppStrings.get('onboard_struggle_procrastination_desc', lang)),
       ('distraction', '📱', 'Distraction', AppStrings.get('onboard_struggle_distraction_desc', lang)),
       ('consistency', '📉', 'Consistency', AppStrings.get('onboard_struggle_consistency_desc', lang)),
-      ('time_management', '⏰', 'Time Management', AppStrings.get('onboard_struggle_time_management_desc', lang)),
-      ('focus', '🎯', 'Focus', AppStrings.get('onboard_struggle_focus_desc', lang)),
+      ('time_management', '⏰', 'Over-commitment', AppStrings.get('onboard_struggle_time_management_desc', lang)),
+      ('focus', '🎯', 'Low Motivation', AppStrings.get('onboard_struggle_focus_desc', lang)),
     ];
   }
 
@@ -163,38 +163,69 @@ class _WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('🌙', style: TextStyle(fontSize: 72)),
-          const SizedBox(height: 24),
-          const Text('NitePlan', style: TextStyle(color: kTextPrimary, fontSize: 36, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
+          const Text('🌙', style: TextStyle(fontSize: 64)),
+          const SizedBox(height: 16),
+          const Text('Night Plan', style: TextStyle(color: kTextPrimary, fontSize: 36, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
           const Text(
-            'Plan the night.\nGrow every day.',
-            style: TextStyle(color: kTextMuted, fontSize: 18, height: 1.5),
+            'Decode Your Failure Patterns.',
+            style: TextStyle(color: kTextPrimary, fontSize: 20, fontWeight: FontWeight.w800, height: 1.2),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: kDivider)),
-            child: const Column(children: [
-              _FeatureRow('⏱️', 'Focus Timer', 'Work without distraction'),
-              SizedBox(height: 12),
-              _FeatureRow('🌙', 'Daily Reflection', 'Analyze your night, every night'),
-              SizedBox(height: 12),
-              _FeatureRow('📊', 'Discipline Score', 'Track your growth 0-100'),
-            ]),
+          const SizedBox(height: 6),
+          const Text(
+            'Understand why plans break. Rebuild your execution discipline.',
+            style: TextStyle(color: kAccentLight, fontSize: 14, fontWeight: FontWeight.w500, height: 1.3),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: kCardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: kDivider),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'The Core Premise',
+                  style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  "You don't need another planner. You need to understand why you don't do what you say you will.",
+                  style: TextStyle(color: kTextMuted, fontSize: 13, height: 1.45),
+                ),
+                const SizedBox(height: 14),
+                const Divider(),
+                const SizedBox(height: 14),
+                _PhilosophyRow('🎯', 'Fleeting Ambition', 'We plan when we are motivated, but fail when we are tired. Willpower alone isn\'t a system.'),
+                const SizedBox(height: 12),
+                _PhilosophyRow('📝', 'The Over-Promise Trap', 'We commit to too much and slowly break trust with ourselves. Less is more.'),
+                const SizedBox(height: 12),
+                _PhilosophyRow('🌙', 'Behavioral Mirror', 'We map your failure reasons to help you align your daily plans with real-world energy.'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'No fake streaks. No productivity guilt. Just honest self-awareness.',
+            style: TextStyle(color: kTextMuted, fontSize: 12, fontStyle: FontStyle.italic),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: onNext,
               style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-              child: const Text("Let's Begin 🚀", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              child: const Text('Discover My Patterns', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ),
           ),
         ],
@@ -203,18 +234,29 @@ class _WelcomePage extends StatelessWidget {
   }
 }
 
-class _FeatureRow extends StatelessWidget {
-  final String emoji, title, subtitle;
-  const _FeatureRow(this.emoji, this.title, this.subtitle);
+class _PhilosophyRow extends StatelessWidget {
+  final String emoji, title, desc;
+  const _PhilosophyRow(this.emoji, this.title, this.desc);
+
   @override
-  Widget build(BuildContext context) => Row(children: [
-    Text(emoji, style: const TextStyle(fontSize: 24)),
-    const SizedBox(width: 12),
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
-      Text(subtitle, style: const TextStyle(color: kTextMuted, fontSize: 12)),
-    ])),
-  ]);
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 20)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(desc, style: const TextStyle(color: kTextMuted, fontSize: 11.5, height: 1.35)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ── Screen 2: Language Selection (NEW) ──
