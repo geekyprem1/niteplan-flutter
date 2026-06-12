@@ -169,7 +169,7 @@ class _WelcomePage extends StatelessWidget {
         children: [
           const Text('🌙', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
-          const Text('Night Plan', style: TextStyle(color: kTextPrimary, fontSize: 36, fontWeight: FontWeight.w900)),
+          const Text('Whyly', style: TextStyle(color: kTextPrimary, fontSize: 36, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
           const Text(
             'Decode Your Failure Patterns.',

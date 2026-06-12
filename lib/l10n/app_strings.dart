@@ -9,7 +9,7 @@ class AppStrings {
   static const Map<String, Map<AppLanguage, String>> _strings = {
 
     // ── APP ──
-    'app_name': {AppLanguage.english: 'Night Plan', AppLanguage.hinglish: 'Night Plan'},
+    'app_name': {AppLanguage.english: 'Whyly', AppLanguage.hinglish: 'Whyly'},
     'app_tagline': {AppLanguage.english: 'Discover Why You Fail. Build The Discipline To Succeed.', AppLanguage.hinglish: 'Samjho fail kyun hote ho. Success ki discipline banao.'},
 
     // ── TABS ──
@@ -124,7 +124,7 @@ class AppStrings {
 
     // ── ONBOARDING ──
     'onboard_start_btn': {AppLanguage.english: "Let's Begin 🚀", AppLanguage.hinglish: 'Shuru Karte Hain 🚀'},
-    'onboard_lang_title': {AppLanguage.english: 'How would you like NitePlan to guide you?', AppLanguage.hinglish: 'NitePlan tumhe kaise guide kare?'},
+    'onboard_lang_title': {AppLanguage.english: 'How would you like Whyly to guide you?', AppLanguage.hinglish: 'Whyly tumhe kaise guide kare?'},
     'onboard_lang_sub': {AppLanguage.english: 'Choose the language that feels most natural to you.', AppLanguage.hinglish: 'Jo language natural lage wo chunao.'},
     'onboard_lang_en_label': {AppLanguage.english: 'English', AppLanguage.hinglish: 'English'},
     'onboard_lang_en_sub': {AppLanguage.english: 'Everything in English', AppLanguage.hinglish: 'Everything in English'},
@@ -205,7 +205,7 @@ class AppStrings {
     'letter_days': {AppLanguage.english: 'days', AppLanguage.hinglish: 'din ke liye'},
 
     // ── LANGUAGE SELECTION ──
-    'lang_select_title': {AppLanguage.english: 'How would you like NitePlan to guide you?', AppLanguage.hinglish: 'How would you like NitePlan to guide you?'},
+    'lang_select_title': {AppLanguage.english: 'How would you like Whyly to guide you?', AppLanguage.hinglish: 'How would you like Whyly to guide you?'},
     'lang_select_sub': {AppLanguage.english: 'Choose the language that feels most natural to you.', AppLanguage.hinglish: 'Choose the language that feels most natural to you.'},
     'lang_english_label': {AppLanguage.english: 'English', AppLanguage.hinglish: 'English'},
     'lang_english_sub': {AppLanguage.english: 'Everything in English', AppLanguage.hinglish: 'Everything in English'},
@@ -285,7 +285,7 @@ class AppStrings {
     'score_insight_milestone_prefix': {AppLanguage.english: "You've completed ", AppLanguage.hinglish: 'Aapne ab tak '},
     'score_insight_milestone_suffix': {AppLanguage.english: ' tasks so far. Great going!', AppLanguage.hinglish: ' tasks poore kiye hain. Bohot badhiya!'},
     'insight_empty_title': {AppLanguage.english: "We're still learning about you.", AppLanguage.hinglish: 'Hum seekh rahe hain.'},
-    'insight_empty_body_1': {AppLanguage.english: "Complete a few tasks and Night Plan will start discovering your patterns.", AppLanguage.hinglish: 'Kuch tasks complete karo aur Night Plan aapke behavior patterns discover karna shuru karega.'},
+    'insight_empty_body_1': {AppLanguage.english: "Complete a few tasks and Whyly will start discovering your patterns.", AppLanguage.hinglish: 'Kuch tasks complete karo aur Whyly aapke behavior patterns discover karna shuru karega.'},
     'insight_empty_body_2': {AppLanguage.english: "Your behavior tells a story. Let's collect enough data to understand it.", AppLanguage.hinglish: 'Aapka behavior ek kahani batata hai. Samajhne ke liye thoda data collect hone dein.'},
     'progress_empty_label': {AppLanguage.english: 'Commit to your moves', AppLanguage.hinglish: 'Plans set karo'},
     'progress_empty_body': {AppLanguage.english: 'Plan your first move to start building discipline.', AppLanguage.hinglish: 'Discipline shuru karne ke liye apna pehla planned move schedule karo.'},

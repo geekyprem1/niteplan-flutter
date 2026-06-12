@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="niteplan_flutter"
+        android:label="Whyly"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
