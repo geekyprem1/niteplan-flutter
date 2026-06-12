@@ -11,18 +11,17 @@ class ActiveTimerTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
-    final theme = Theme.of(context);
 
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Abhi Ka Focus & Tracker Board',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              const Text('FOCUS TIMER', style: TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              const Text('Abhi Ka Focus', style: TextStyle(color: kTextPrimary, fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
 
               if (vm.runningTask != null) ...[
@@ -36,123 +35,87 @@ class ActiveTimerTab extends StatelessWidget {
               ] else ...[
                 _NoTaskCard(),
                 const SizedBox(height: 20),
-                _PendingTasksRow(vm: vm),
+                if (vm.pendingTasks.isNotEmpty) _PendingTasksRow(vm: vm),
               ],
 
-              // History
               _FinishedTasksHistory(vm: vm),
             ],
           ),
         ),
-
-        // Feedback Dialog
-        if (vm.feedbackDialogTask != null)
-          _FeedbackDialog(vm: vm),
+        if (vm.feedbackDialogTask != null) _FeedbackDialog(vm: vm),
       ],
     );
   }
 }
 
-// --- Running Task Card ---
 class _RunningTaskCard extends StatelessWidget {
   final TaskViewModel vm;
   const _RunningTaskCard({required this.vm});
-
   @override
   Widget build(BuildContext context) {
     final task = vm.runningTask!;
-    final theme = Theme.of(context);
-    return Card(
-      color: theme.colorScheme.secondary,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
-          side: BorderSide(
-              color: theme.colorScheme.primary.withValues(alpha: 0.15))),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(Icons.directions_run,
-                color: theme.colorScheme.primary, size: 36),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(task.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSecondary)),
-                  if (task.description.isNotEmpty)
-                    Text(task.description,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSecondary
-                                .withValues(alpha: 0.8))),
-                  const SizedBox(height: 4),
-                  Text('Target Duration (Samay): ${task.durationMinutes} mins',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSecondary
-                              .withValues(alpha: 0.9),
-                          fontWeight: FontWeight.w600)),
-                ],
-              ),
-            ),
-          ],
-        ),
+    final areaColor = Color(task.lifeAreaEnum.colorValue);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kCardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: areaColor.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Container(width: 4, height: 60, decoration: BoxDecoration(color: areaColor, borderRadius: BorderRadius.circular(4))),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${task.lifeAreaEnum.emoji} ${task.lifeAreaEnum.label}', style: TextStyle(color: areaColor, fontSize: 11, fontWeight: FontWeight.w600)),
+              Text(task.title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('${task.durationMinutes} min target', style: const TextStyle(color: kTextMuted, fontSize: 12)),
+            ]),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: kSuccess.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
+            child: const Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.circle, size: 8, color: kSuccess),
+              SizedBox(width: 4),
+              Text('LIVE', style: TextStyle(color: kSuccess, fontSize: 11, fontWeight: FontWeight.bold)),
+            ]),
+          ),
+        ],
       ),
     );
   }
 }
 
-// --- Timer Ring ---
 class _TimerRing extends StatelessWidget {
   final TaskViewModel vm;
   const _TimerRing({required this.vm});
-
   @override
   Widget build(BuildContext context) {
     final task = vm.runningTask!;
-    final totalSeconds = task.durationMinutes * 60;
-    final secondsRemaining = vm.timerSecondsRemaining;
-    final fraction = totalSeconds > 0
-        ? (totalSeconds - secondsRemaining) / totalSeconds
-        : 0.0;
-    final progressPct = (fraction * 100).toInt();
-    final theme = Theme.of(context);
-
-    final hours = secondsRemaining ~/ 3600;
-    final mins = (secondsRemaining % 3600) ~/ 60;
-    final secs = secondsRemaining % 60;
-    final timeString = hours > 0
-        ? '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}'
-        : '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    final total = task.durationMinutes * 60;
+    final remaining = vm.timerSecondsRemaining;
+    final fraction = total > 0 ? (total - remaining) / total : 0.0;
+    final pct = (fraction * 100).toInt();
+    final h = remaining ~/ 3600;
+    final m = (remaining % 3600) ~/ 60;
+    final s = remaining % 60;
+    final timeStr = h > 0
+        ? '${h.toString().padLeft(2,'0')}:${m.toString().padLeft(2,'0')}:${s.toString().padLeft(2,'0')}'
+        : '${m.toString().padLeft(2,'0')}:${s.toString().padLeft(2,'0')}';
 
     return Center(
       child: SizedBox(
-        width: 230,
-        height: 230,
+        width: 240, height: 240,
         child: CustomPaint(
-          painter: _TimerRingPainter(
-            fraction: fraction.toDouble(),
-            trackColor: theme.colorScheme.surfaceContainerHighest,
-            progressColor: theme.colorScheme.primary,
-          ),
+          painter: _TimerPainter(fraction: fraction.toDouble(), color: kAccent),
           child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(timeString,
-                    style: const TextStyle(
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1)),
-                Text('$progressPct% Poora Hua',
-                    style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13)),
-              ],
-            ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(timeStr, style: const TextStyle(color: kTextPrimary, fontSize: 40, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              Text('$pct% done', style: const TextStyle(color: kAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(vm.timerIsRunning ? 'Running...' : 'Paused', style: TextStyle(color: vm.timerIsRunning ? kSuccess : kWarning, fontSize: 11)),
+            ]),
           ),
         ),
       ),
@@ -160,78 +123,45 @@ class _TimerRing extends StatelessWidget {
   }
 }
 
-class _TimerRingPainter extends CustomPainter {
+class _TimerPainter extends CustomPainter {
   final double fraction;
-  final Color trackColor;
-  final Color progressColor;
-
-  _TimerRingPainter({
-    required this.fraction,
-    required this.trackColor,
-    required this.progressColor,
-  });
-
+  final Color color;
+  _TimerPainter({required this.fraction, required this.color});
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 16;
-    final stroke = 16.0;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round;
-
-    // Track
-    paint.color = trackColor;
-    canvas.drawCircle(center, radius, paint);
-
-    // Progress
-    paint.color = progressColor;
-    final sweepAngle = 2 * math.pi * (1 - fraction);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      sweepAngle,
-      false,
-      paint,
-    );
+    final radius = size.width / 2 - 20;
+    final p = Paint()..style = PaintingStyle.stroke..strokeWidth = 16..strokeCap = StrokeCap.round;
+    p.color = kDivider;
+    canvas.drawCircle(center, radius, p);
+    p.color = color;
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -math.pi / 2, 2 * math.pi * fraction, false, p);
   }
-
   @override
-  bool shouldRepaint(covariant _TimerRingPainter old) =>
-      old.fraction != fraction;
+  bool shouldRepaint(covariant _TimerPainter old) => old.fraction != fraction;
 }
 
-// --- Timer Controls ---
 class _TimerControls extends StatelessWidget {
   final TaskViewModel vm;
   const _TimerControls({required this.vm});
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         FloatingActionButton(
-          heroTag: 'pauseresume',
+          heroTag: 'pr',
+          backgroundColor: vm.timerIsRunning ? kCardBg : kAccent,
+          foregroundColor: vm.timerIsRunning ? kTextPrimary : Colors.white,
           onPressed: vm.togglePauseResumeTimer,
-          backgroundColor: vm.timerIsRunning
-              ? theme.colorScheme.secondaryContainer
-              : theme.colorScheme.primary,
-          foregroundColor: vm.timerIsRunning
-              ? theme.colorScheme.onSecondaryContainer
-              : theme.colorScheme.onPrimary,
-          child: Icon(vm.timerIsRunning ? Icons.pause : Icons.play_arrow,
-              size: 28),
+          child: Icon(vm.timerIsRunning ? Icons.pause : Icons.play_arrow, size: 28),
         ),
         const SizedBox(width: 20),
-        FloatingActionButton(
+        FloatingActionButton.small(
           heroTag: 'stop',
-          mini: true,
+          backgroundColor: kDanger.withValues(alpha: 0.15),
+          foregroundColor: kDanger,
           onPressed: vm.stopAndCompleteTaskEarly,
-          backgroundColor: theme.colorScheme.errorContainer,
-          foregroundColor: theme.colorScheme.onErrorContainer,
           child: const Icon(Icons.stop),
         ),
       ],
@@ -239,11 +169,9 @@ class _TimerControls extends StatelessWidget {
   }
 }
 
-// --- Quick Complete / Not Done ---
 class _QuickCompleteButtons extends StatelessWidget {
   final TaskViewModel vm;
   const _QuickCompleteButtons({required this.vm});
-
   @override
   Widget build(BuildContext context) {
     final task = vm.runningTask!;
@@ -252,35 +180,18 @@ class _QuickCompleteButtons extends StatelessWidget {
         Expanded(
           child: ElevatedButton.icon(
             icon: const Icon(Icons.check),
-            label: const Text('Poora Ho Gaya!',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: kGreenDone,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onPressed: () =>
-                vm.presentFeedbackDialogManually(task, isDone: true),
+            label: const Text('Ho Gaya!', style: TextStyle(fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(backgroundColor: kSuccess, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), padding: const EdgeInsets.symmetric(vertical: 12)),
+            onPressed: () => vm.presentFeedbackDialogManually(task, isDone: true),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton.icon(
             icon: const Icon(Icons.close),
-            label: const Text('Nahi Ho Paya',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  Theme.of(context).colorScheme.errorContainer,
-              foregroundColor: Theme.of(context).colorScheme.error,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            onPressed: () =>
-                vm.presentFeedbackDialogManually(task, isDone: false),
+            label: const Text('Nahi Ho Paya', style: TextStyle(fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(backgroundColor: kDanger.withValues(alpha: 0.15), foregroundColor: kDanger, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), padding: const EdgeInsets.symmetric(vertical: 12)),
+            onPressed: () => vm.presentFeedbackDialogManually(task, isDone: false),
           ),
         ),
       ],
@@ -288,235 +199,129 @@ class _QuickCompleteButtons extends StatelessWidget {
   }
 }
 
-// --- No Task Card ---
 class _NoTaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          children: [
-            Icon(Icons.check_circle_outline,
-                size: 64,
-                color: theme.colorScheme.primary.withValues(alpha: 0.6)),
-            const SizedBox(height: 16),
-            Text('Abhi koi kaam chalu nahi hai',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text(
-                'Niche di gayi list me se koi scheduled kaam start kar sakte hain, ya planning page par ja kar naya schedule karein.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-                textAlign: TextAlign.center),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: kDivider)),
+      child: Column(
+        children: [
+          const Text('🎯', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 12),
+          const Text('Koi task running nahi', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 4),
+          const Text('Planning tab se kaam start karo ya niche se koi task shuru karo', style: TextStyle(color: kTextMuted, fontSize: 13), textAlign: TextAlign.center),
+        ],
       ),
     );
   }
 }
 
-// --- Pending tasks horizontal row ---
 class _PendingTasksRow extends StatelessWidget {
   final TaskViewModel vm;
   const _PendingTasksRow({required this.vm});
-
   @override
   Widget build(BuildContext context) {
-    final pending =
-        vm.allTasks.where((t) => t.status == 'PENDING').toList();
-    if (pending.isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Pehle Se Scheduled Kaam Shuru Karein',
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
+        const Text('Pending Tasks — Shuru Karo', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
         SizedBox(
-          height: 140,
+          height: 130,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: pending.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, i) {
-              final task = pending[i];
+            itemCount: vm.pendingTasks.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (_, i) {
+              final t = vm.pendingTasks[i];
+              final color = Color(t.lifeAreaEnum.colorValue);
               return GestureDetector(
-                onTap: () => vm.triggerTaskAlert(task),
-                child: SizedBox(
-                  width: 200,
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                onTap: () => vm.triggerTaskAlert(t),
+                child: Container(
+                  width: 180,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.3))),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${t.lifeAreaEnum.emoji} ${t.lifeAreaEnum.label}', style: TextStyle(color: color, fontSize: 11)),
+                      Text(t.title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text('${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')} · ${t.durationMinutes}m', style: const TextStyle(color: kTextMuted, fontSize: 11)),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(task.title,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
-                          Text(
-                              'Scheduled: ${task.hour.toString().padLeft(2, '0')}:${task.minute.toString().padLeft(2, '0')}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.6))),
-                          Text('Duration: ${task.durationMinutes} mins',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Shuru Karein',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.bold)),
-                              Icon(Icons.play_arrow,
-                                  color: theme.colorScheme.primary, size: 16),
-                            ],
-                          )
+                          const Text('Tap to start', style: TextStyle(color: kAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                          const Icon(Icons.play_arrow, color: kAccent, size: 16),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
               );
             },
           ),
         ),
+        const SizedBox(height: 20),
       ],
     );
   }
 }
 
-// --- Finished tasks history ---
 class _FinishedTasksHistory extends StatelessWidget {
   final TaskViewModel vm;
   const _FinishedTasksHistory({required this.vm});
-
   @override
   Widget build(BuildContext context) {
-    final finished = vm.allTasks
-        .where((t) => t.status == 'DONE' || t.status == 'NOT_DONE')
-        .toList();
+    final finished = vm.allTasks.where((t) => t.status == 'DONE' || t.status == 'NOT_DONE').toList();
     if (finished.isEmpty) return const SizedBox.shrink();
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 8),
-        const Divider(),
-        const SizedBox(height: 4),
-        Text('Aaj Ki Performance Reports & Logs',
-            style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary)),
-        const SizedBox(height: 12),
-        ...finished.map((t) => _HistoryCard(task: t)),
+        const Divider(color: kDivider),
+        const SizedBox(height: 8),
+        const Text("Aaj Ka Result", style: TextStyle(color: kTextMuted, fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(height: 10),
+        ...finished.map((t) {
+          final isOk = t.status == 'DONE';
+          final color = isOk ? kSuccess : kDanger;
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: color.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                Icon(isOk ? Icons.check_circle : Icons.cancel, color: color, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(t.title, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+                      if (t.reason.isNotEmpty) Text(t.reason, style: const TextStyle(color: kTextMuted, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
+                ),
+                Text('${t.durationMinutes}m', style: const TextStyle(color: kTextMuted, fontSize: 11)),
+              ],
+            ),
+          );
+        }),
       ],
     );
   }
 }
 
-class _HistoryCard extends StatelessWidget {
-  final Task task;
-  const _HistoryCard({required this.task});
-
-  @override
-  Widget build(BuildContext context) {
-    final isSuccess = task.status == 'DONE';
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      color: isSuccess
-          ? kGreenDone.withValues(alpha: 0.08)
-          : theme.colorScheme.errorContainer.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-              color: isSuccess
-                  ? kGreenDone.withValues(alpha: 0.25)
-                  : theme.colorScheme.error.withValues(alpha: 0.2))),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 14,
-              backgroundColor:
-                  isSuccess ? kGreenDone : theme.colorScheme.error,
-              child: Icon(isSuccess ? Icons.check : Icons.close,
-                  color: Colors.white, size: 16),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(task.title,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: isSuccess
-                                    ? kGreenDark
-                                    : theme.colorScheme.error)),
-                      ),
-                      Text('${task.durationMinutes} mins',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.6))),
-                    ],
-                  ),
-                  if (task.reason.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    RichText(
-                        text: TextSpan(
-                      children: [
-                        TextSpan(
-                            text: 'Vajah: ',
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: isSuccess
-                                    ? kGreenDark
-                                    : theme.colorScheme.error)),
-                        TextSpan(
-                            text: task.reason,
-                            style: TextStyle(
-                                fontSize: 11,
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.6))),
-                      ],
-                    )),
-                  ]
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// --- Feedback Dialog ---
 class _FeedbackDialog extends StatefulWidget {
   final TaskViewModel vm;
   const _FeedbackDialog({required this.vm});
-
   @override
   State<_FeedbackDialog> createState() => _FeedbackDialogState();
 }
@@ -524,178 +329,117 @@ class _FeedbackDialog extends StatefulWidget {
 class _FeedbackDialogState extends State<_FeedbackDialog> {
   late bool _isDone;
   String _reason = '';
-
+  final _reasonCtrl = TextEditingController();
   @override
-  void initState() {
-    super.initState();
-    _isDone = widget.vm.feedbackDefaultIsDone;
-  }
+  void initState() { super.initState(); _isDone = widget.vm.feedbackDefaultIsDone; }
+  @override
+  void dispose() { _reasonCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     final vm = widget.vm;
     final task = vm.feedbackDialogTask!;
-    final theme = Theme.of(context);
-    final suggestions =
-        _isDone ? vm.successReasonsSuggestion : vm.failureReasonsSuggestion;
+    final suggestions = _isDone ? vm.successReasonsSuggestion : vm.failureReasonsSuggestion;
 
     return Material(
-      color: Colors.black54,
+      color: Colors.black.withValues(alpha: 0.7),
       child: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Card(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24)),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Kaam Ka Report & Feedback',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  Text("Kaam: '${task.title}'",
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('Kya yeh kaam poora ho gaya?',
-                      style: theme.textTheme.bodySmall),
-                  const SizedBox(height: 12),
-
-                  // Done / Not Done toggle
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.check),
-                          label: const Text('Haan, Ho Gaya',
-                              style: TextStyle(
-                                  fontSize: 11, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                _isDone ? kGreenDone : theme.colorScheme.surfaceContainerHighest,
-                            foregroundColor: _isDone
-                                ? Colors.white
-                                : theme.colorScheme.onSurface,
-                          ),
-                          onPressed: () =>
-                              setState(() {
-                                _isDone = true;
-                                _reason = '';
-                              }),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.close),
-                          label: const Text('Nahi Hua',
-                              style: TextStyle(
-                                  fontSize: 11, fontWeight: FontWeight.bold)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: !_isDone
-                                ? theme.colorScheme.error
-                                : theme.colorScheme.surfaceContainerHighest,
-                            foregroundColor: !_isDone
-                                ? Colors.white
-                                : theme.colorScheme.onSurface,
-                          ),
-                          onPressed: () =>
-                              setState(() {
-                                _isDone = false;
-                                _reason = '';
-                              }),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Reason chips
-                  Text(
-                      _isDone
-                          ? 'Kaise poora hua? (Vajah chunein)'
-                          : 'Kyun nahi ho paya? (Vajah chunein)',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: suggestions.map((s) {
-                      final cleaned = s.contains(' (') ? s.substring(0, s.indexOf(' (')) : s;
-                      final isSelected = _reason == cleaned;
-                      return GestureDetector(
-                        onTap: () => setState(() => _reason = cleaned),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.all(20),
+          child: Container(
+            decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(24), border: Border.all(color: kDivider)),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('TASK REPORT', style: TextStyle(color: kAccent, fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(task.title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() { _isDone = true; _reason = ''; }),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? (_isDone ? kGreenDark : const Color(0xFFC62828))
-                                : theme.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color: isSelected
-                                    ? Colors.transparent
-                                    : theme.colorScheme.outline
-                                        .withValues(alpha: 0.5)),
+                            color: _isDone ? kSuccess.withValues(alpha: 0.2) : const Color(0xFF252535),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: _isDone ? kSuccess : kDivider),
                           ),
-                          child: Text(s,
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.7))),
+                          alignment: Alignment.center,
+                          child: Text('✅ Ho Gaya', style: TextStyle(color: _isDone ? kSuccess : kTextMuted, fontWeight: FontWeight.bold)),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Custom reason text
-                  TextField(
-                    onChanged: (v) => setState(() => _reason = v),
-                    decoration: InputDecoration(
-                      labelText: 'Apna khud ka vajah likhein',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                          onPressed: vm.cancelFeedbackDialog,
-                          child: const Text('Radd Karein')),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.primary,
-                            foregroundColor: Colors.white),
-                        onPressed: () async {
-                          final finalReason = _reason.isEmpty
-                              ? (_isDone
-                                  ? 'Completed successfully'
-                                  : 'Could not finish')
-                              : _reason;
-                          await vm.submitTaskFeedback(
-                              task, _isDone, finalReason);
-                        },
-                        child: const Text('Log Save Karein',
-                            style:
-                                TextStyle(fontWeight: FontWeight.bold)),
                       ),
-                    ],
-                  )
-                ],
-              ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() { _isDone = false; _reason = ''; }),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: !_isDone ? kDanger.withValues(alpha: 0.2) : const Color(0xFF252535),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: !_isDone ? kDanger : kDivider),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text('❌ Nahi Hua', style: TextStyle(color: !_isDone ? kDanger : kTextMuted, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(_isDone ? 'Kaise ho gaya?' : 'Kyun nahi ho paya?', style: const TextStyle(color: kTextMuted, fontSize: 12)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6, runSpacing: 6,
+                  children: suggestions.map((s) {
+                    final cleaned = s.contains(' (') ? s.substring(0, s.indexOf(' (')) : s;
+                    final sel = _reason == cleaned;
+                    return GestureDetector(
+                      onTap: () => setState(() { _reason = cleaned; _reasonCtrl.text = cleaned; }),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: sel ? (_isDone ? kSuccess.withValues(alpha: 0.2) : kDanger.withValues(alpha: 0.2)) : const Color(0xFF252535),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: sel ? (_isDone ? kSuccess : kDanger) : kDivider),
+                        ),
+                        child: Text(s, style: TextStyle(color: sel ? (_isDone ? kSuccess : kDanger) : kTextMuted, fontSize: 11)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _reasonCtrl,
+                  style: const TextStyle(color: kTextPrimary, fontSize: 13),
+                  onChanged: (v) => setState(() => _reason = v),
+                  decoration: const InputDecoration(labelText: 'Ya khud likho...'),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: vm.cancelFeedbackDialog,
+                      child: const Text('Baad mein', style: TextStyle(color: kTextMuted)),
+                    ),
+                    const Spacer(),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final finalReason = _reason.isEmpty ? (_isDone ? 'Completed' : 'Could not finish') : _reason;
+                        await vm.submitTaskFeedback(task, _isDone, finalReason);
+                      },
+                      child: const Text('Save Karo', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
