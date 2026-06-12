@@ -4,7 +4,6 @@ import '../data/future_self_letter_model.dart';
 import '../viewmodel/task_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../l10n/language_provider.dart';
-import '../l10n/language_provider.dart';
 
 class FutureSelfScreen extends StatefulWidget {
   const FutureSelfScreen({super.key});

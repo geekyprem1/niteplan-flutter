@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../viewmodel/task_viewmodel.dart';
 import '../theme/app_theme.dart';
 import '../l10n/language_provider.dart';
-import '../l10n/language_provider.dart';
 
 class WeeklyReviewScreen extends StatelessWidget {
   const WeeklyReviewScreen({super.key});

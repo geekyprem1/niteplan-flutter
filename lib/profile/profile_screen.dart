@@ -129,12 +129,12 @@ class ProfileScreen extends StatelessWidget {
           _ActionCard(
             icon: Icons.delete_forever,
             iconColor: kDanger,
-            title: 'Account Delete Karo',
-            subtitle: 'Sab data permanently delete ho jayega',
+            title: lang.tr('profile_delete'),
+            subtitle: lang.tr('profile_delete_sub'),
             onTap: () => _confirmAction(
               context,
-              title: '⚠️ Account Delete?',
-              content: 'Aapka saara data — tasks, reflections, scores — permanently delete ho jayega. Ye wapas nahi aayega.',
+              title: lang.tr('dialog_delete_title'),
+              content: lang.tr('dialog_delete_body'),
               onConfirm: () async {
                 final ok = await authVm.deleteAccount();
                 if (!ok && context.mounted) {
@@ -157,6 +157,7 @@ class ProfileScreen extends StatelessWidget {
     required VoidCallback onConfirm,
     bool isDanger = false,
   }) {
+    final lang = context.read<LanguageProvider>();
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -165,11 +166,14 @@ class ProfileScreen extends StatelessWidget {
         title: Text(title, style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold)),
         content: Text(content, style: const TextStyle(color: kTextMuted)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: kTextMuted))),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(lang.tr('dialog_cancel'), style: const TextStyle(color: kTextMuted)),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: isDanger ? kDanger : kAccent),
             onPressed: () { Navigator.pop(context); onConfirm(); },
-            child: Text(isDanger ? 'Delete' : 'Confirm'),
+            child: Text(isDanger ? lang.tr('delete') : lang.tr('dialog_confirm')),
           ),
         ],
       ),
@@ -284,16 +288,16 @@ class _LanguageCard extends StatelessWidget {
               // Handle
               Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: kDivider, borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 20),
-              const Text('Choose Language', style: TextStyle(color: kTextPrimary, fontWeight: FontWeight.w900, fontSize: 20)),
+              Text(langProv.tr('profile_language'), style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.w900, fontSize: 20)),
               const SizedBox(height: 6),
-              const Text('Instantly switches the entire app', style: TextStyle(color: kTextMuted, fontSize: 13)),
+              Text(langProv.tr('profile_language_sub'), style: const TextStyle(color: kTextMuted, fontSize: 13)),
               const SizedBox(height: 24),
 
               // English
               _LangSheetOption(
                 flag: '🇺🇸',
-                label: 'English',
-                sublabel: 'Everything in English',
+                label: langProv.tr('lang_english_label'),
+                sublabel: langProv.tr('lang_english_sub'),
                 isSelected: langProv.isEnglish,
                 onTap: () async {
                   await langProv.setLanguage(AppLanguage.english);
@@ -305,8 +309,8 @@ class _LanguageCard extends StatelessWidget {
               // Hinglish
               _LangSheetOption(
                 flag: '🇮🇳',
-                label: 'Hinglish',
-                sublabel: 'English with natural Hindi coaching',
+                label: langProv.tr('lang_hinglish_label'),
+                sublabel: langProv.tr('lang_hinglish_sub'),
                 isSelected: langProv.isHinglish,
                 onTap: () async {
                   await langProv.setLanguage(AppLanguage.hinglish);
