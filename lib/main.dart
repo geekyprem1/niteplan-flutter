@@ -6,6 +6,7 @@ import 'viewmodel/task_viewmodel.dart';
 import 'auth/auth_viewmodel.dart';
 import 'auth/auth_gate.dart';
 import 'sync/background_sync.dart';
+import 'l10n/language_provider.dart';
 import 'screens/scheduler_tab.dart';
 import 'screens/active_timer_tab.dart';
 import 'screens/reflection_tab.dart';
@@ -17,11 +18,15 @@ void main() async {
   await Firebase.initializeApp();
   await BackgroundSync.initialize();
 
+  final langProvider = LanguageProvider();
+  await langProvider.loadSavedLanguage();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => TaskViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider.value(value: langProvider),
       ],
       child: const NitePlanApp(),
     ),
@@ -62,6 +67,19 @@ class _NitePlanHomeState extends State<NitePlanHome> {
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
     final authVm = context.watch<AuthViewModel>();
+    final lang = context.watch<LanguageProvider>();
+    final tabTitles = [
+      lang.tr('appbar_plan'),
+      lang.tr('appbar_focus'),
+      lang.tr('appbar_reflect'),
+      lang.tr('appbar_score'),
+    ];
+    final tabLabels = [
+      lang.tr('tab_plan'),
+      lang.tr('tab_focus'),
+      lang.tr('tab_reflect'),
+      lang.tr('tab_score'),
+    ];
 
     return Scaffold(
       backgroundColor: kSurface,
@@ -75,7 +93,7 @@ class _NitePlanHomeState extends State<NitePlanHome> {
               children: [
                 const Text('🌙 ', style: TextStyle(fontSize: 14)),
                 Text(
-                  ['Plan Karo', 'Focus Karo', 'Reflect Karo', 'Grow Karo'][_tab],
+                  tabTitles[_tab],
                   style: const TextStyle(color: kTextPrimary, fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ],
@@ -144,18 +162,18 @@ class _NitePlanHomeState extends State<NitePlanHome> {
         backgroundColor: kCardBg,
         height: 65,
         destinations: [
-          const NavigationDestination(icon: Icon(Icons.event_note_outlined), selectedIcon: Icon(Icons.event_note), label: 'Plan'),
+          NavigationDestination(icon: const Icon(Icons.event_note_outlined), selectedIcon: const Icon(Icons.event_note), label: tabLabels[0]),
           NavigationDestination(
             icon: Badge(isLabelVisible: vm.runningTask != null, backgroundColor: kSuccess, label: const Text('●', style: TextStyle(fontSize: 6)), child: const Icon(Icons.timer_outlined)),
             selectedIcon: const Icon(Icons.timer),
-            label: 'Focus',
+            label: tabLabels[1],
           ),
           NavigationDestination(
             icon: Badge(isLabelVisible: !vm.hasReflectedToday && DateTime.now().hour >= 21, backgroundColor: kDanger, label: const Text('!'), child: const Icon(Icons.nights_stay_outlined)),
             selectedIcon: const Icon(Icons.nights_stay),
-            label: 'Reflect',
+            label: tabLabels[2],
           ),
-          const NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Score'),
+          NavigationDestination(icon: const Icon(Icons.bar_chart_outlined), selectedIcon: const Icon(Icons.bar_chart), label: tabLabels[3]),
         ],
       ),
       floatingActionButton: vm.notificationAlertTask != null

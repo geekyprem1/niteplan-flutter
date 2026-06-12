@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../auth/auth_viewmodel.dart';
+import '../l10n/language_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -13,8 +14,11 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
+  AppLanguage _selectedLanguage = AppLanguage.english;
   String? _selectedStruggle;
   String? _selectedGoal;
+
+  static const int _totalPages = 5;
 
   final _struggles = [
     ('procrastination', '😴', 'Procrastination', 'Kaam kal pe dalta rehta hoon'),
@@ -33,10 +37,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   @override
-  void dispose() { _pageController.dispose(); super.dispose(); }
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   void _nextPage() {
-    _pageController.nextPage(duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+    );
   }
 
   Future<void> _finishOnboarding() async {
@@ -44,6 +54,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setString('main_struggle', _selectedStruggle ?? 'consistency');
     await prefs.setString('primary_goal', _selectedGoal ?? 'career');
     await prefs.setBool('onboarding_done', true);
+
+    // Apply selected language
+    if (mounted) {
+      await context.read<LanguageProvider>().setLanguage(_selectedLanguage);
+    }
   }
 
   @override
@@ -53,11 +68,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Progress dots
+            // Progress bar
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
-                children: List.generate(4, (i) => Expanded(
+                children: List.generate(_totalPages, (i) => Expanded(
                   child: Container(
                     height: 3,
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -75,24 +90,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (p) => setState(() => _currentPage = p),
                 children: [
+                  // Screen 1: Welcome
                   _WelcomePage(onNext: _nextPage),
+
+                  // Screen 2: Language Selection (NEW)
+                  _LanguagePage(
+                    selected: _selectedLanguage,
+                    onSelect: (lang) => setState(() => _selectedLanguage = lang),
+                    onNext: _nextPage,
+                  ),
+
+                  // Screen 3: Biggest Challenge
                   _SelectPage(
-                    title: 'Aapki sabse badi problem kya hai?',
-                    subtitle: 'Honest raho — ye app aapko yahi solve karne mein help karegi',
+                    title: _selectedLanguage == AppLanguage.hinglish
+                        ? 'Aapki sabse badi problem kya hai?'
+                        : "What's your biggest challenge?",
+                    subtitle: _selectedLanguage == AppLanguage.hinglish
+                        ? 'Honest raho — ye app aapko solve karne mein help karegi'
+                        : 'Be honest — this app will help you solve it.',
                     items: _struggles,
                     selected: _selectedStruggle,
                     onSelect: (v) => setState(() => _selectedStruggle = v),
                     onNext: _selectedStruggle != null ? _nextPage : null,
+                    language: _selectedLanguage,
                   ),
+
+                  // Screen 4: Primary Goal
                   _SelectPage(
-                    title: 'Aapka primary goal kya hai?',
-                    subtitle: 'Is area pe aap sabse zyada focus karna chahte ho',
+                    title: _selectedLanguage == AppLanguage.hinglish
+                        ? 'Aapka primary goal kya hai?'
+                        : "What's your primary goal?",
+                    subtitle: _selectedLanguage == AppLanguage.hinglish
+                        ? 'Is area pe sabse zyada focus milega'
+                        : 'This area gets maximum focus in the app.',
                     items: _goals,
                     selected: _selectedGoal,
                     onSelect: (v) => setState(() => _selectedGoal = v),
                     onNext: _selectedGoal != null ? _nextPage : null,
+                    language: _selectedLanguage,
                   ),
-                  _AuthPage(onFinish: _finishOnboarding),
+
+                  // Screen 5: Auth
+                  _AuthPage(
+                    onFinish: _finishOnboarding,
+                    language: _selectedLanguage,
+                  ),
                 ],
               ),
             ),
@@ -120,7 +162,7 @@ class _WelcomePage extends StatelessWidget {
           const Text('NitePlan', style: TextStyle(color: kTextPrimary, fontSize: 36, fontWeight: FontWeight.w900)),
           const SizedBox(height: 12),
           const Text(
-            'Raat ko plan karo.\nSubah grow karo.',
+            'Plan the night.\nGrow every day.',
             style: TextStyle(color: kTextMuted, fontSize: 18, height: 1.5),
             textAlign: TextAlign.center,
           ),
@@ -129,11 +171,11 @@ class _WelcomePage extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: kCardBg, borderRadius: BorderRadius.circular(20), border: Border.all(color: kDivider)),
             child: const Column(children: [
-              _FeatureRow('⏱️', 'Focus Timer', 'Kaam karo bina distraction ke'),
+              _FeatureRow('⏱️', 'Focus Timer', 'Work without distraction'),
               SizedBox(height: 12),
-              _FeatureRow('🌙', 'Daily Reflection', 'Raat ko apne din ka analysis karo'),
+              _FeatureRow('🌙', 'Daily Reflection', 'Analyze your night, every night'),
               SizedBox(height: 12),
-              _FeatureRow('📊', 'Discipline Score', 'Apni growth track karo 0-100'),
+              _FeatureRow('📊', 'Discipline Score', 'Track your growth 0-100'),
             ]),
           ),
           const SizedBox(height: 32),
@@ -142,7 +184,7 @@ class _WelcomePage extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onNext,
               style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-              child: const Text('Shuru Karte Hain 🚀', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              child: const Text("Let's Begin 🚀", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ),
           ),
         ],
@@ -165,18 +207,134 @@ class _FeatureRow extends StatelessWidget {
   ]);
 }
 
-// ── Screen 2 & 3: Selection pages ──
+// ── Screen 2: Language Selection (NEW) ──
+class _LanguagePage extends StatelessWidget {
+  final AppLanguage selected;
+  final ValueChanged<AppLanguage> onSelect;
+  final VoidCallback onNext;
+  const _LanguagePage({required this.selected, required this.onSelect, required this.onNext});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('🌐', style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 16),
+          const Text(
+            'How would you like\nNitePlan to guide you?',
+            style: TextStyle(color: kTextPrimary, fontSize: 24, fontWeight: FontWeight.w900, height: 1.3),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Choose the language that feels most natural to you.',
+            style: TextStyle(color: kTextMuted, fontSize: 14),
+          ),
+          const SizedBox(height: 32),
+
+          // English option
+          _LangOption(
+            flag: '🇺🇸',
+            label: 'English',
+            sublabel: 'Everything in English',
+            preview: '"You completed 4 tasks today."',
+            isSelected: selected == AppLanguage.english,
+            onTap: () => onSelect(AppLanguage.english),
+          ),
+          const SizedBox(height: 16),
+
+          // Hinglish option
+          _LangOption(
+            flag: '🇮🇳',
+            label: 'Hinglish',
+            sublabel: 'English with natural Hindi coaching',
+            preview: '"Aaj tumne 4 tasks complete kiye."',
+            isSelected: selected == AppLanguage.hinglish,
+            onTap: () => onSelect(AppLanguage.hinglish),
+          ),
+
+          const Spacer(),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onNext,
+              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+              child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LangOption extends StatelessWidget {
+  final String flag, label, sublabel, preview;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const _LangOption({required this.flag, required this.label, required this.sublabel, required this.preview, required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: isSelected ? kAccent.withValues(alpha: 0.12) : kCardBg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? kAccent : kDivider,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 36)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: TextStyle(color: isSelected ? kAccent : kTextPrimary, fontWeight: FontWeight.w900, fontSize: 18)),
+                  Text(sublabel, style: const TextStyle(color: kTextMuted, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isSelected ? kAccent.withValues(alpha: 0.1) : const Color(0xFF252535),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(preview, style: TextStyle(color: isSelected ? kAccent : kTextMuted, fontSize: 11, fontStyle: FontStyle.italic)),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected) const Icon(Icons.check_circle, color: kAccent, size: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Screen 3 & 4: Selection pages ──
 class _SelectPage extends StatelessWidget {
   final String title, subtitle;
   final List<(String, String, String, String)> items;
   final String? selected;
   final ValueChanged<String> onSelect;
   final VoidCallback? onNext;
+  final AppLanguage language;
 
-  const _SelectPage({required this.title, required this.subtitle, required this.items, required this.selected, required this.onSelect, required this.onNext});
+  const _SelectPage({required this.title, required this.subtitle, required this.items, required this.selected, required this.onSelect, required this.onNext, required this.language});
 
   @override
   Widget build(BuildContext context) {
+    final btnLabel = language == AppLanguage.hinglish ? 'Aage Badho' : 'Continue';
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -225,7 +383,7 @@ class _SelectPage extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onNext,
               style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-              child: const Text('Aage Badho', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              child: Text(btnLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ),
           ),
         ],
@@ -234,14 +392,16 @@ class _SelectPage extends StatelessWidget {
   }
 }
 
-// ── Screen 4: Auth ──
+// ── Screen 5: Auth ──
 class _AuthPage extends StatelessWidget {
   final Future<void> Function() onFinish;
-  const _AuthPage({required this.onFinish});
+  final AppLanguage language;
+  const _AuthPage({required this.onFinish, required this.language});
 
   @override
   Widget build(BuildContext context) {
     final authVm = context.watch<AuthViewModel>();
+    final isHi = language == AppLanguage.hinglish;
 
     return Padding(
       padding: const EdgeInsets.all(28),
@@ -251,9 +411,18 @@ class _AuthPage extends StatelessWidget {
           const Spacer(),
           const Text('🔐', style: TextStyle(fontSize: 56)),
           const SizedBox(height: 20),
-          const Text('Apna Account Banao', style: TextStyle(color: kTextPrimary, fontSize: 24, fontWeight: FontWeight.w900)),
+          Text(
+            isHi ? 'Apna Account Banao' : 'Create Your Account',
+            style: const TextStyle(color: kTextPrimary, fontSize: 24, fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 8),
-          const Text('Cloud sync se aapka data kabhi nahi jayega — chahe phone badlo ya app delete karo', style: TextStyle(color: kTextMuted, fontSize: 13), textAlign: TextAlign.center),
+          Text(
+            isHi
+                ? 'Cloud sync se aapka data kabhi nahi jayega — chahe phone badlo ya app delete karo'
+                : 'Cloud sync ensures your data is never lost — even if you change phones.',
+            style: const TextStyle(color: kTextMuted, fontSize: 13),
+            textAlign: TextAlign.center,
+          ),
           const Spacer(),
 
           if (authVm.errorMessage != null)
@@ -268,21 +437,20 @@ class _AuthPage extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
+                backgroundColor: Colors.white, foregroundColor: Colors.black87,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               onPressed: authVm.isLoading ? null : () async {
                 await onFinish();
-                await context.read<AuthViewModel>().signInWithGoogle();
+                if (context.mounted) await context.read<AuthViewModel>().signInWithGoogle();
               },
               child: authVm.isLoading
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: kAccent))
-                  : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text('G', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF4285F4))),
-                      SizedBox(width: 10),
-                      Text('Google Se Sign In Karo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Text('G', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF4285F4))),
+                      const SizedBox(width: 10),
+                      Text(isHi ? 'Google Se Sign In Karo' : 'Sign in with Google', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                     ]),
             ),
           ),
@@ -291,20 +459,23 @@ class _AuthPage extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                foregroundColor: kTextMuted,
-                side: const BorderSide(color: kDivider),
+                foregroundColor: kTextMuted, side: const BorderSide(color: kDivider),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
               onPressed: authVm.isLoading ? null : () async {
                 await onFinish();
-                await context.read<AuthViewModel>().signInAsGuest();
+                if (context.mounted) await context.read<AuthViewModel>().signInAsGuest();
               },
-              child: const Text('Guest Mode Se Continue Karo', style: TextStyle(fontWeight: FontWeight.w600)),
+              child: Text(isHi ? 'Guest Mode Se Continue Karo' : 'Continue as Guest', style: const TextStyle(fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(height: 12),
-          const Text('Guest mode mein data sirf is device pe rahega', style: TextStyle(color: kTextMuted, fontSize: 11), textAlign: TextAlign.center),
+          Text(
+            isHi ? 'Guest mode mein data sirf is device pe rahega' : 'In guest mode, data stays on this device only.',
+            style: const TextStyle(color: kTextMuted, fontSize: 11),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 32),
         ],
       ),
