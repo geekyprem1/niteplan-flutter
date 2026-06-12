@@ -12,7 +12,20 @@
           "package_name": "com.niteplan.niteplan_flutter"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "331179069314-qcq8srvdljomg2n9o3kt0h4emcbmb7nb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.niteplan.niteplan_flutter",
+            "certificate_hash": "eeec31baa8a6b9d51097cfdd42900babdc62dd9c"
+          }
+        },
+        {
+          "client_id": "331179069314-h5po305ohek89i5ariskst0pt15pev07.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCADO3XxGesNTvU-ul8zf8D5VQre2HpZhk"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "331179069314-h5po305ohek89i5ariskst0pt15pev07.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

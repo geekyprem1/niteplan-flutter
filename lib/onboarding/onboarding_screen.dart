@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../auth/auth_viewmodel.dart';
 import '../l10n/language_provider.dart';
+import '../l10n/app_strings.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -21,21 +22,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const int _totalPages = 5;
 
-  final _struggles = [
-    ('procrastination', '😴', 'Procrastination', 'Kaam kal pe dalta rehta hoon'),
-    ('distraction', '📱', 'Distraction', 'Phone/social media control nahi hota'),
-    ('consistency', '📉', 'Consistency', 'Start karta hoon, continue nahi kar pata'),
-    ('time_management', '⏰', 'Time Management', 'Waqt kabhi kaafi nahi lagta'),
-    ('focus', '🎯', 'Focus', 'Kaam karte waqt dhyan bhatakta hai'),
-  ];
+  List<(String, String, String, String)> _getStruggles(AppLanguage lang) {
+    return [
+      ('procrastination', '😴', 'Procrastination', AppStrings.get('onboard_struggle_procrastination_desc', lang)),
+      ('distraction', '📱', 'Distraction', AppStrings.get('onboard_struggle_distraction_desc', lang)),
+      ('consistency', '📉', 'Consistency', AppStrings.get('onboard_struggle_consistency_desc', lang)),
+      ('time_management', '⏰', 'Time Management', AppStrings.get('onboard_struggle_time_management_desc', lang)),
+      ('focus', '🎯', 'Focus', AppStrings.get('onboard_struggle_focus_desc', lang)),
+    ];
+  }
 
-  final _goals = [
-    ('health', '💪', 'Health', 'Fit rehna, workout, diet'),
-    ('business', '💼', 'Business', 'Apna business grow karna'),
-    ('career', '🚀', 'Career', 'Job, skills, promotions'),
-    ('learning', '📚', 'Learning', 'Naya seekhna, courses, books'),
-    ('finance', '💰', 'Finance', 'Paisa bachana, invest karna'),
-  ];
+  List<(String, String, String, String)> _getGoals(AppLanguage lang) {
+    return [
+      ('health', '💪', 'Health', AppStrings.get('onboard_goal_health_desc', lang)),
+      ('business', '💼', 'Business', AppStrings.get('onboard_goal_business_desc', lang)),
+      ('career', '🚀', 'Career', AppStrings.get('onboard_goal_career_desc', lang)),
+      ('learning', '📚', 'Learning', AppStrings.get('onboard_goal_learning_desc', lang)),
+      ('finance', '💰', 'Finance', AppStrings.get('onboard_goal_finance_desc', lang)),
+    ];
+  }
 
   @override
   void dispose() {
@@ -78,7 +83,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 children: List.generate(_totalPages, (i) => Expanded(
                   child: Container(
-                    height: 3,
+                     height: 3,
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     decoration: BoxDecoration(
                       color: i <= _currentPage ? kAccent : kDivider,
@@ -112,7 +117,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     subtitle: _selectedLanguage == AppLanguage.hinglish
                         ? 'Honest raho — ye app aapko solve karne mein help karegi'
                         : 'Be honest — this app will help you solve it.',
-                    items: _struggles,
+                    items: _getStruggles(_selectedLanguage),
                     selected: _selectedStruggle,
                     onSelect: (v) => setState(() => _selectedStruggle = v),
                     onNext: _selectedStruggle != null ? _nextPage : null,
@@ -127,7 +132,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     subtitle: _selectedLanguage == AppLanguage.hinglish
                         ? 'Is area pe sabse zyada focus milega'
                         : 'This area gets maximum focus in the app.',
-                    items: _goals,
+                    items: _getGoals(_selectedLanguage),
                     selected: _selectedGoal,
                     onSelect: (v) => setState(() => _selectedGoal = v),
                     onNext: _selectedGoal != null ? _nextPage : null,

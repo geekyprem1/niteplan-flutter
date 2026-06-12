@@ -346,7 +346,23 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
     final lang = context.watch<LanguageProvider>();
     final vm = widget.vm;
     final task = vm.feedbackDialogTask!;
-    final suggestions = _isDone ? vm.successReasonsSuggestion : vm.failureReasonsSuggestion;
+    final suggestionKeys = _isDone
+        ? [
+            'reason_success_focused',
+            'reason_success_early',
+            'reason_success_easy',
+            'reason_success_energy',
+            'reason_success_no_distract',
+          ]
+        : [
+            'reason_fail_distracted',
+            'reason_fail_tired',
+            'reason_fail_external',
+            'reason_fail_planning',
+            'reason_fail_motivation',
+            'reason_fail_time',
+          ];
+    final suggestions = suggestionKeys.map((key) => lang.tr(key)).toList();
 
     return Material(
       color: Colors.black.withValues(alpha: 0.7),

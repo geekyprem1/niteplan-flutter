@@ -236,6 +236,35 @@ class AppStrings {
     'home_reflect_cta': {AppLanguage.english: 'Start Reflection', AppLanguage.hinglish: 'Reflection Shuru Karo'},
     'home_trend_title': {AppLanguage.english: 'this week', AppLanguage.hinglish: 'is hafte'},
     'home_trend_no_data': {AppLanguage.english: 'No history yet', AppLanguage.hinglish: 'Abhi koi history nahi'},
+
+    // Onboarding struggles descriptions
+    'onboard_struggle_procrastination_desc': {AppLanguage.english: 'Constantly putting off tasks for tomorrow', AppLanguage.hinglish: 'Kaam kal pe dalta rehta hoon'},
+    'onboard_struggle_distraction_desc': {AppLanguage.english: 'Struggling to control phone and social media use', AppLanguage.hinglish: 'Phone/social media control nahi hota'},
+    'onboard_struggle_consistency_desc': {AppLanguage.english: 'Starting tasks but failing to stick to them', AppLanguage.hinglish: 'Start karta hoon, continue nahi kar pata'},
+    'onboard_struggle_time_management_desc': {AppLanguage.english: 'Always running out of time for important tasks', AppLanguage.hinglish: 'Waqt kabhi kaafi nahi lagta'},
+    'onboard_struggle_focus_desc': {AppLanguage.english: 'Getting easily distracted while working', AppLanguage.hinglish: 'Kaam karte waqt dhyan bhatakta hai'},
+
+    // Onboarding goals descriptions
+    'onboard_goal_health_desc': {AppLanguage.english: 'Staying fit, exercising, and eating healthy', AppLanguage.hinglish: 'Fit rehna, workout, diet'},
+    'onboard_goal_business_desc': {AppLanguage.english: 'Building and growing my business', AppLanguage.hinglish: 'Apna business grow karna'},
+    'onboard_goal_career_desc': {AppLanguage.english: 'Improving skills and advancing my job/career', AppLanguage.hinglish: 'Job, skills, promotions'},
+    'onboard_goal_learning_desc': {AppLanguage.english: 'Learning new things, reading, and taking courses', AppLanguage.hinglish: 'Naya seekhna, courses, books'},
+    'onboard_goal_finance_desc': {AppLanguage.english: 'Saving money and investing wisely', AppLanguage.hinglish: 'Paisa bachana, invest karna'},
+
+    // Success Reasons
+    'reason_success_focused': {AppLanguage.english: 'Fully Focused', AppLanguage.hinglish: 'Puri tarah focused (Fully Focused)'},
+    'reason_success_early': {AppLanguage.english: 'Finished Early', AppLanguage.hinglish: 'Time se pehle khatam (Finished Early)'},
+    'reason_success_easy': {AppLanguage.english: 'Easy Task', AppLanguage.hinglish: 'Asan kaam tha (Easy Task)'},
+    'reason_success_energy': {AppLanguage.english: 'High Energy', AppLanguage.hinglish: 'Energy high thi (High Energy)'},
+    'reason_success_no_distract': {AppLanguage.english: 'No Distractions', AppLanguage.hinglish: 'Koi distraction nahi thi (No Distractions)'},
+
+    // Failure Reasons
+    'reason_fail_distracted': {AppLanguage.english: 'Phone/Social Media', AppLanguage.hinglish: 'Phone/Social Media (Distracted)'},
+    'reason_fail_tired': {AppLanguage.english: 'Tired/Sleepy', AppLanguage.hinglish: 'Thaka hua tha (Tired/Sleepy)'},
+    'reason_fail_external': {AppLanguage.english: 'Urgent Work/External Event', AppLanguage.hinglish: 'Urgent kaam aa gaya (External Event)'},
+    'reason_fail_planning': {AppLanguage.english: 'Poor Planning', AppLanguage.hinglish: 'Kaam zyada bada tha (Poor Planning)'},
+    'reason_fail_motivation': {AppLanguage.english: 'Motivation Low', AppLanguage.hinglish: 'Mann nahi tha (Motivation Low)'},
+    'reason_fail_time': {AppLanguage.english: 'Time Issues', AppLanguage.hinglish: 'Time nahi mila (Time Issues)'},
   };
 
   static String get(String key, AppLanguage language) {
