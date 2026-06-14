@@ -58,6 +58,14 @@ class _NitePlanHomeState extends State<NitePlanHome> {
   int _tab = 0;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<TaskViewModel>().requestNotificationPermissions();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final vm = context.watch<TaskViewModel>();
     final authVm = context.watch<AuthViewModel>();

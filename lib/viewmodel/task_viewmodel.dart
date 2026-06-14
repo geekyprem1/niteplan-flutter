@@ -240,9 +240,6 @@ class TaskViewModel extends ChangeNotifier {
 
     await _loadAllData();
 
-    // Request notification and exact alarm permissions
-    await NotificationService.instance.requestPermissions();
-
     // Reschedule all active pending reminders on startup
     await NotificationService.instance.rescheduleAllPendingReminders(pendingTasks);
 
@@ -254,6 +251,10 @@ class TaskViewModel extends ChangeNotifier {
       // Check for any missed alarms when the app starts
       _checkMissedAlarmsOnStartup();
     }
+  }
+
+  Future<void> requestNotificationPermissions() async {
+    await NotificationService.instance.requestPermissions();
   }
 
   Future<void> _handleNotificationTap(int taskId) async {
@@ -506,6 +507,9 @@ class TaskViewModel extends ChangeNotifier {
     required int minute,
     required double durationHr,
   }) async {
+    // Ensure permission is requested before scheduling a reminder
+    await NotificationService.instance.requestPermissions();
+
     final task = Task(
       title: title,
       description: description,

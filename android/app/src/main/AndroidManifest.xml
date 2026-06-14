@@ -36,6 +36,10 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- Scheduled Notification Receiver -->
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+                  android:exported="false" />
+
         <!-- Boot Receiver for local notifications rescheduling -->
         <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
                   android:exported="true">

@@ -25,16 +25,35 @@ class NotificationService {
     // 1. Initialize Timezones
     tz.initializeTimeZones();
     try {
-      final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+      String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+      print("[NotificationService] Detected timezone: $currentTimeZone");
+      
+      // Map legacy/deprecated timezone names to modern equivalents supported by timezone package
+      final mapping = {
+        'Asia/Calcutta': 'Asia/Kolkata',
+        'Asia/Saigon': 'Asia/Ho_Chi_Minh',
+        'Asia/Katmandu': 'Asia/Kathmandu',
+        'Africa/Asmera': 'Africa/Asmara',
+        'Atlantic/Jan_Mayen': 'Europe/Oslo',
+      };
+      if (mapping.containsKey(currentTimeZone)) {
+        print("[NotificationService] Mapping legacy timezone $currentTimeZone to ${mapping[currentTimeZone]}");
+        currentTimeZone = mapping[currentTimeZone]!;
+      }
+      
       tz.setLocalLocation(tz.getLocation(currentTimeZone));
-    } catch (e) {
+      print("[NotificationService] Timezone successfully set to: ${tz.local.name}");
+    } catch (e, stack) {
+      print("[NotificationService] ERROR: Timezone lookup failed: $e");
+      print(stack);
       // Fallback to UTC if timezone lookup fails
       tz.setLocalLocation(tz.getLocation('UTC'));
+      print("[NotificationService] Timezone fallback set to: ${tz.local.name}");
     }
 
     // 2. Initialize Notifications Settings
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('ic_launcher');
 
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
@@ -63,6 +82,26 @@ class NotificationService {
         }
       },
     );
+
+    // Create Android notification channel explicitly
+    final androidPlugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin != null) {
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'whyly_task_reminders', // id
+        'Task Reminders', // title
+        description: 'Reminders for your planned tasks', // description
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
+      try {
+        await androidPlugin.createNotificationChannel(channel);
+        print("[NotificationService] SUCCESS: Created notification channel 'whyly_task_reminders'");
+      } catch (e) {
+        print("[NotificationService] ERROR: Failed to create notification channel: $e");
+      }
+    }
 
     // Check if the app was launched by tapping a notification
     final NotificationAppLaunchDetails? notificationAppLaunchDetails =
@@ -117,8 +156,15 @@ class NotificationService {
     final localScheduleTime = DateTime(year, month, day, task.hour, task.minute);
     final zonedScheduleTime = tz.TZDateTime.from(localScheduleTime, tz.local);
 
+    print("[NotificationService] Scheduling task: '${task.title}' (ID: ${task.id}) on ${task.plannedDate} at ${task.hour}:${task.minute}");
+    print("[NotificationService] Local scheduled time: $localScheduleTime");
+    print("[NotificationService] Local timezone: ${tz.local.name}");
+    print("[NotificationService] Zoned scheduled time: $zonedScheduleTime");
+    print("[NotificationService] Current zoned time: ${tz.TZDateTime.now(tz.local)}");
+
     // If scheduled time is in the past, do not schedule
     if (zonedScheduleTime.isBefore(tz.TZDateTime.now(tz.local))) {
+      print("[NotificationService] WARNING: Scheduled time is in the past! Skipping scheduling.");
       return;
     }
 
@@ -143,17 +189,54 @@ class NotificationService {
       iOS: iosDetails,
     );
 
-    await _notificationsPlugin.zonedSchedule(
-      task.id!,
-      task.title,
-      task.description.isNotEmpty ? task.description : 'Time for your task!',
-      zonedScheduleTime,
-      notificationDetails,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: task.id!.toString(),
+    try {
+      await _notificationsPlugin.zonedSchedule(
+        task.id!,
+        task.title,
+        task.description.isNotEmpty ? task.description : 'Time for your task!',
+        zonedScheduleTime,
+        notificationDetails,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: task.id!.toString(),
+      );
+      print("[NotificationService] SUCCESS: Notification scheduled for task ${task.id}");
+    } catch (e, stack) {
+      print("[NotificationService] ERROR: Failed to schedule exact alarm: $e");
+      print(stack);
+    }
+  }
+
+  /// Show an immediate notification for testing
+  Future<void> showImmediateNotification(int id, String title, String body) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'whyly_task_reminders',
+      'Task Reminders',
+      channelDescription: 'Reminders for your planned tasks',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
     );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    try {
+      await _notificationsPlugin.show(id, title, body, notificationDetails);
+      print("[NotificationService] SUCCESS: Immediate notification shown");
+    } catch (e) {
+      print("[NotificationService] ERROR: Failed to show immediate notification: $e");
+    }
   }
 
   /// Cancel a scheduled local notification reminder
